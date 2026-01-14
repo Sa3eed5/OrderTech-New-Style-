@@ -354,7 +354,7 @@ function renderRestaurants() {
         grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #6b7280; grid-column: 1/-1;"><i class="fas fa-store" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3; display: block;"></i><p style="font-size: 16px;">No restaurants found</p></div>';
     } else {
         grid.innerHTML = pageItems.map(restaurant => `
-            <div class="restaurant-card ${restaurant.status}" onclick="openRestaurantDetails(${restaurant.id})">
+            <div class="restaurant-card ${restaurant.status}" onclick="openRestaurantMembers()(${restaurant.id})">
                 <div class="restaurant-card-header">
                     <div class="restaurant-icon">
                         <i class="fas fa-building"></i>
@@ -1351,3 +1351,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // No need to add click handlers - let browser handle normal navigation
     // Sidebar close on mobile when clicking outside is handled by the existing click listener above
 });
+
