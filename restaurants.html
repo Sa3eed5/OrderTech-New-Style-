@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OrderTech - Restaurants</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Mobile Toggle Button -->
+    <button class="mobile-toggle" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+
+ <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <!-- Header -->
+        <div class="sidebar-header">
+            <button class="menu-toggle" onclick="toggleSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo">
+                <img src="https://ordertech.pro/OrderTech_Icon.png" alt="OrderTech Logo">
+            </div>
+            <div class="brand-info">
+                <h1>OrderTech</h1>
+                <p>AI Restaurant Ops</p>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="sidebar-nav">
+            <a onclick="window.location.href='index.html'" class="nav-item" data-page="dashboard">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <a onclick="window.location.href='restaurants.html'" class="nav-item active" data-page="restaurants">
+                <i class="fas fa-building"></i>
+                <span>Restaurants</span>
+            </a>
+            
+            <a onclick="window.location.href='branches.html'" class="nav-item" data-page="branches">
+                <i class="fas fa-store"></i>
+                <span>Branches</span>
+            </a>
+            
+            <a onclick="window.location.href='menu.html'" class="nav-item" data-page="menu">
+                <i class="fas fa-utensils"></i>
+                <span>Menu</span>
+            </a>
+            
+            <a onclick="window.location.href='orders.html'" class="nav-item" data-page="orders">
+                <i class="fas fa-shopping-cart"></i>
+                <span>Orders</span>
+            </a>
+            
+            <a onclick="window.location.href='calls.html'" class="nav-item" data-page="calls">
+                <i class="fas fa-phone"></i>
+                <span>Calls</span>
+            </a>
+            
+            <a onclick="window.location.href='customers.html'" class="nav-item" data-page="customers">
+                <i class="fas fa-user-friends"></i>
+                <span>Customers</span>
+            </a>
+            
+            <a onclick="window.location.href='integrations.html'" class="nav-item" data-page="integrations">
+                <i class="fas fa-puzzle-piece"></i>
+                <span>Integrations</span>
+            </a>
+            
+            <div class="nav-divider"></div>
+            
+            <a onclick="window.location.href='member.html'" class="nav-item" data-page="members">
+                <i class="fas fa-users"></i>
+                <span>Members</span>
+            </a>
+            
+            <a onclick="window.location.href='ai-agent.html'" class="nav-item" data-page="ai-agent">
+                <i class="fas fa-robot"></i>
+                <span>AI Agent</span>
+            </a>
+            
+            <a onclick="window.location.href='billing.html'" class="nav-item" data-page="billing">
+                <i class="fas fa-credit-card"></i>
+                <span>Billing</span>
+            </a>
+            
+            <a onclick="window.location.href='plans.html'" class="nav-item" data-page="plans">
+                <i class="fas fa-star"></i>
+                <span>Plans</span>
+            </a>
+            
+            <a onclick="window.location.href='settings.html'" class="nav-item" data-page="settings">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+
+        <!-- Footer -->
+        <div class="sidebar-footer">
+            <a href="#" class="sign-out" onclick="handleSignOut(event)">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </a>
+        </div>
+    </aside>
+
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <div id="restaurants-page" class="page-content active">
+            <div class="page-header modern-header">
+                <div class="page-header-content">
+                    <div class="header-icon-wrapper">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="header-text">
+                        <h1>Restaurants</h1>
+                        <p>Manage all restaurants and their details</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button class="btn-primary" onclick="openAddRestaurantModal()">
+                        <i class="fas fa-plus"></i>
+                        Add Restaurant
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="stats-cards-grid">
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3 id="totalRestaurants">0</h3>
+                        <p class="stat-card-label">Total Restaurants</p>
+                        <span class="stat-card-description">All managed restaurants</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon green">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3 id="activeRestaurants" class="green-text">0</h3>
+                        <p class="stat-card-label">Active Restaurants</p>
+                        <span class="stat-card-description">Currently operational</span>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3 id="totalBranches">0</h3>
+                        <p class="stat-card-label">Total Branches</p>
+                        <span class="stat-card-description">Across all restaurants</span>
+                    </div>
+                </div>
+            </div>
+
+   
+
+            <!-- Search, Filter, Sort Controls -->
+            <div class="controls-bar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search restaurants..." onkeyup="filterRestaurants()">
+                </div>
+                
+                <div class="controls-group">
+                    <select id="filterSelect" onchange="filterRestaurants()" class="filter-select">
+                        <option value="all">All Status</option>
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    
+                    <select id="sortSelect" onchange="sortRestaurants()" class="sort-select">
+                        <option value="name">Sort by Name</option>
+                        <option value="date">Sort by Date</option>
+                        <option value="branches">Sort by Branches</option>
+                    </select>
+                        <option value="branches">Sort by Branches</option>
+                    </select>
+                    
+                    <div class="view-toggle">
+                        <button class="view-btn active" onclick="changeView('grid')" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-btn" onclick="changeView('list')" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Restaurants Grid -->
+            <div class="restaurants-container">
+                <div id="restaurantsGrid" class="restaurants-grid">
+                    <!-- Restaurants will be rendered here -->
+                </div>
+                
+                <!-- Pagination -->
+                <div class="pagination-container" id="paginationContainer">
+                    <div class="pagination-info" id="paginationInfo">
+                        Showing <strong id="itemsStart">1</strong> - <strong id="itemsEnd">10</strong> of <strong id="itemsTotal">0</strong> restaurants
+                    </div>
+                    <div class="pagination-controls" id="paginationControls">
+                        <!-- Pagination buttons will be rendered here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Restaurant Modal -->
+    <div id="addRestaurantModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAddRestaurantModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <form id="addRestaurantForm" onsubmit="handleAddRestaurant(event)">
+                <div class="modal-header-text">
+                    <h2>Add New Restaurant</h2>
+                    <p class="modal-description">Add a new restaurant location to your system</p>
+                </div>
+                
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="restaurantName">Restaurant Name <span class="required">*</span></label>
+                        <input type="text" id="restaurantName" name="restaurantName" placeholder="Restaurant Name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="restaurantPhone">Phone <span class="required">*</span></label>
+                        <input type="tel" id="restaurantPhone" name="restaurantPhone" placeholder="+966 50 123 4567" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="restaurantEmail">Email</label>
+                        <input type="email" id="restaurantEmail" name="restaurantEmail" placeholder="restaurant@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="restaurantCurrency">Currency</label>
+                        <select id="restaurantCurrency" name="restaurantCurrency">
+                            <option value="">Select currency</option>
+                            <option value="SAR">SAR - Saudi Riyal</option>
+                            <option value="USD">USD - US Dollar</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="AED">AED - UAE Dirham</option>
+                            <option value="EGP">EGP - Egyptian Pound</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="openingTime">Opening Time</label>
+                            <input type="time" id="openingTime" name="openingTime">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="closingTime">Closing Time</label>
+                            <input type="time" id="closingTime" name="closingTime">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-secondary" onclick="closeAddRestaurantModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Restaurant</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Restaurant Details Modal -->
+    <div id="restaurantDetailsModal" class="modal">
+        <div class="modal-content modal-details">
+            <button class="modal-close" onclick="closeRestaurantDetails()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="details-content">
+                <div class="details-header">
+                    <h2>Restaurant Details</h2>
+                    <p class="modal-description">View and manage restaurant details</p>
+                </div>
+                
+                <div class="restaurant-name-section">
+                    <h3 id="detailsName">Restaurant Name</h3>
+                    <span id="detailsStatus" class="status-badge active">Active</span>
+                </div>
+                
+                <div class="details-body">
+                    <div class="details-section">
+                        <h4>Description</h4>
+                        <p id="detailsDescription" class="details-text">Restaurant description</p>
+                    </div>
+                    
+                    <div class="details-row">
+                        <div class="details-item">
+                            <div class="details-label">
+                                <i class="fas fa-phone"></i>
+                                Phone
+                            </div>
+                            <div id="detailsPhone" class="details-value">0101001</div>
+                        </div>
+                        <div class="details-item">
+                            <div class="details-label">
+                                Email
+                            </div>
+                            <div id="detailsEmail" class="details-value">email@test.com</div>
+                        </div>
+                    </div>
+                    
+                    <div class="details-item">
+                        <div class="details-label">
+                            <i class="fas fa-clock"></i>
+                            Opening Hours
+                        </div>
+                        <div id="detailsHours" class="details-value">9:00 AM - 11:11 PM</div>
+                    </div>
+                    
+                    <div class="details-stats-grid">
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="details-stat-label">Branches</div>
+                            <div id="detailsBranches" class="details-stat-value">4</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="details-stat-label">Customers</div>
+                            <div id="detailsCustomers" class="details-stat-value">3</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-utensils"></i>
+                            </div>
+                            <div class="details-stat-label">Menu Items</div>
+                            <div id="detailsMenuItems" class="details-stat-value">0</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="details-stat-label">Orders</div>
+                            <div id="detailsOrders" class="details-stat-value">0</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-phone-alt"></i>
+                            </div>
+                            <div class="details-stat-label">Calls</div>
+                            <div id="detailsCalls" class="details-stat-value">0</div>
+                        </div>
+                        <div class="details-stat">
+                            <div class="details-stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <div class="details-stat-label">Created</div>
+                            <div id="detailsCreated" class="details-stat-value">2026-01-13</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="details-footer">
+                    <button class="btn-danger" onclick="deleteRestaurant()">
+                        <i class="fas fa-trash"></i>
+                        Delete
+                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" onclick="closeRestaurantDetails()">Close</button>
+                        <button class="btn-primary" onclick="editRestaurant()">
+                            <i class="fas fa-edit"></i>
+                            Edit
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Warning Modal -->
+    <div id="deleteWarningModal" class="modal">
+        <div class="modal-content modal-warning">
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h2>Delete Restaurant</h2>
+            <p class="warning-message">Are you sure you want to delete <strong id="deleteRestaurantName"></strong>? This action cannot be undone.</p>
+            <div class="warning-footer">
+                <button class="btn-secondary" onclick="closeDeleteWarning()">Cancel</button>
+                <button class="btn-danger" onclick="confirmDeleteRestaurant()">
+                    <i class="fas fa-trash"></i>
+                    Delete Restaurant
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
