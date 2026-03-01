@@ -1474,6 +1474,221 @@ document.addEventListener('DOMContentLoaded', function() {
 let currentOfferStep = 1;
 const totalOfferSteps = 3;
 
+// Validation state
+let validationErrors = {};
+
+// Validation rules
+const offerValidationRules = {
+    offerNameEn: (value) => {
+        if (!value || value.trim().length === 0) return 'Offer name (English) is required';
+        if (value.trim().length < 3) return 'Minimum 3 characters required';
+        if (value.length > 80) return 'Maximum 80 characters allowed';
+        return null;
+    },
+    offerNameAr: (value) => {
+        if (value && value.length > 80) return 'Maximum 80 characters allowed';
+        return null;
+    },
+    offerType: (value) => {
+        if (!value) return 'Please select an offer type';
+        return null;
+    },
+    time: (startTime, endTime) => {
+        if (startTime && endTime && startTime >= endTime) {
+            return 'End time must be after start time';
+        }
+        return null;
+    },
+    descEn: (value) => {
+        if (value && value.length > 400) return 'Maximum 400 characters allowed';
+        return null;
+    },
+    descAr: (value) => {
+        if (value && value.length > 400) return 'Maximum 400 characters allowed';
+        return null;
+    }
+};
+
+// Validate single field
+function validateField(fieldId) {
+    const input = document.getElementById(fieldId);
+    if (!input) return true;
+    
+    const value = input.value;
+    let error = null;
+    
+    switch(fieldId) {
+        case 'offerNameEn':
+            error = offerValidationRules.offerNameEn(value);
+            break;
+        case 'offerNameAr':
+            error = offerValidationRules.offerNameAr(value);
+            break;
+        case 'offerDescEn':
+            error = offerValidationRules.descEn(value);
+            break;
+        case 'offerDescAr':
+            error = offerValidationRules.descAr(value);
+            break;
+    }
+    
+    // Map field ID to error element ID
+    const errorIdMap = {
+        'offerNameEn': 'offerNameEnError',
+        'offerNameAr': 'offerNameArError',
+        'offerDescEn': 'descEnError',
+        'offerDescAr': 'descArError'
+    };
+    
+    const errorEl = document.getElementById(errorIdMap[fieldId]);
+    
+    if (error) {
+        validationErrors[fieldId] = error;
+        input.classList.add('input-error');
+        input.setAttribute('aria-invalid', 'true');
+        if (errorEl) errorEl.textContent = error;
+    } else {
+        delete validationErrors[fieldId];
+        input.classList.remove('input-error');
+        input.removeAttribute('aria-invalid');
+        if (errorEl) errorEl.textContent = '';
+    }
+    
+    return !error;
+}
+
+// Validate time fields
+function validateTimeFields() {
+    const startTime = document.getElementById('offerStartTime')?.value || '';
+    const endTime = document.getElementById('offerEndTime')?.value || '';
+    const errorEl = document.getElementById('timeError');
+    
+    const error = offerValidationRules.time(startTime, endTime);
+    
+    if (error) {
+        validationErrors['time'] = error;
+        if (errorEl) errorEl.textContent = error;
+    } else {
+        delete validationErrors['time'];
+        if (errorEl) errorEl.textContent = '';
+    }
+    
+    return !error;
+}
+
+// Validate all fields for step 1
+function validateStep1() {
+    const isNameEnValid = validateField('offerNameEn');
+    const isNameArValid = validateField('offerNameAr');
+    const isDescEnValid = validateField('offerDescEn');
+    const isDescArValid = validateField('offerDescAr');
+    const isTimeValid = validateTimeFields();
+    
+    const offerType = document.getElementById('offerType')?.value;
+    const isTypeValid = !!offerType;
+    
+    if (!isTypeValid) {
+        validationErrors['offerType'] = 'Please select an offer type';
+    } else {
+        delete validationErrors['offerType'];
+    }
+    
+    return isNameEnValid && isNameArValid && isDescEnValid && isDescArValid && isTimeValid && isTypeValid;
+}
+
+// Show validation error summary
+function showValidationSummary() {
+    const summary = document.getElementById('validationErrorSummary');
+    const list = document.getElementById('errorSummaryList');
+    
+    const errors = Object.values(validationErrors);
+    
+    if (errors.length > 0 && summary && list) {
+        list.innerHTML = errors.map(e => `<li>${e}</li>`).join('');
+        summary.style.display = 'block';
+        summary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else if (summary) {
+        summary.style.display = 'none';
+    }
+}
+
+// Clear validation errors
+function clearValidationErrors() {
+    validationErrors = {};
+    
+    // Clear all error messages
+    document.querySelectorAll('.form-error').forEach(el => el.textContent = '');
+    
+    // Remove error classes
+    document.querySelectorAll('.input-error').forEach(el => {
+        el.classList.remove('input-error');
+        el.removeAttribute('aria-invalid');
+    });
+    
+    // Hide summary
+    const summary = document.getElementById('validationErrorSummary');
+    if (summary) summary.style.display = 'none';
+}
+
+// Update character count
+function updateCharCount(inputId, maxLength) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    // Map input ID to count element ID
+    const countIdMap = {
+        'offerNameEn': 'offerNameEnCount',
+        'offerNameAr': 'offerNameArCount',
+        'offerDescEn': 'descEnCount',
+        'offerDescAr': 'descArCount'
+    };
+    
+    const countEl = document.getElementById(countIdMap[inputId]);
+    if (!countEl) return;
+    
+    const len = input.value.length;
+    countEl.textContent = `${len}/${maxLength}`;
+    
+    countEl.classList.remove('warning', 'error');
+    if (len > maxLength) {
+        countEl.classList.add('error');
+    } else if (len > maxLength * 0.9) {
+        countEl.classList.add('warning');
+    }
+}
+
+// Auto-grow textarea
+function autoGrowTextarea(textarea) {
+    if (!textarea) return;
+    textarea.style.height = 'auto';
+    const newHeight = Math.min(textarea.scrollHeight, 150);
+    textarea.style.height = newHeight + 'px';
+}
+
+// Toggle day button selection (Step 1)
+function toggleDayBtn(btn) {
+    btn.classList.toggle('active');
+    btn.setAttribute('aria-pressed', btn.classList.contains('active'));
+}
+
+// Select all days (Step 1)
+function selectAllDaysHandler() {
+    const dayBtns = document.querySelectorAll('#daysFieldRow .day-btn');
+    dayBtns.forEach(btn => {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+    });
+}
+
+// Clear all days (Step 1)
+function clearAllDaysHandler() {
+    const dayBtns = document.querySelectorAll('#daysFieldRow .day-btn');
+    dayBtns.forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-pressed', 'false');
+    });
+}
+
 function openAddOfferModal() {
     const modal = document.getElementById('addOfferModal');
     if (modal) {
@@ -1481,6 +1696,7 @@ function openAddOfferModal() {
         document.body.style.overflow = 'hidden';
         currentOfferStep = 1;
         updateOfferWizard();
+        initOfferFormListeners();
     }
 }
 
@@ -1494,9 +1710,32 @@ function closeAddOfferModal() {
 }
 
 function nextOfferStep() {
+    // Validate step 1 before proceeding
+    if (currentOfferStep === 1) {
+        if (!validateStep1()) {
+            showValidationSummary();
+            return;
+        }
+        clearValidationErrors();
+    }
+    
+    // Validate step 2 before proceeding
+    if (currentOfferStep === 2) {
+        if (!validateStep2()) {
+            return;
+        }
+        // Sync step 2 data to legacy selectedOfferProducts for preview
+        selectedOfferProducts = collectStep2Data();
+    }
+    
     if (currentOfferStep < totalOfferSteps) {
         currentOfferStep++;
         updateOfferWizard();
+        
+        // Initialize Step 2 when entering
+        if (currentOfferStep === 2) {
+            initStep2Products();
+        }
         
         // Update preview when reaching the last step
         if (currentOfferStep === totalOfferSteps) {
@@ -1515,12 +1754,25 @@ function prevOfferStep() {
 function updateOfferWizard() {
     // Update step indicators
     const steps = document.querySelectorAll('#addOfferModal .wizard-step');
+    const connectors = document.querySelectorAll('#addOfferModal .wizard-connector');
+    
     steps.forEach((step, index) => {
         step.classList.remove('active', 'completed');
+        step.removeAttribute('aria-current');
+        
         if (index + 1 === currentOfferStep) {
             step.classList.add('active');
+            step.setAttribute('aria-current', 'step');
         } else if (index + 1 < currentOfferStep) {
             step.classList.add('completed');
+        }
+    });
+    
+    // Update connectors
+    connectors.forEach((connector, index) => {
+        connector.classList.remove('completed');
+        if (index + 1 < currentOfferStep) {
+            connector.classList.add('completed');
         }
     });
 
@@ -1553,6 +1805,257 @@ function updateOfferWizard() {
     }
 }
 
+// Initialize offer form listeners (called once when modal opens)
+let offerFormInitialized = false;
+
+function initOfferFormListeners() {
+    if (offerFormInitialized) return;
+    offerFormInitialized = true;
+    
+    // Offer Name (EN) - input and blur validation
+    const offerNameEn = document.getElementById('offerNameEn');
+    if (offerNameEn) {
+        offerNameEn.addEventListener('input', () => {
+            updateCharCount('offerNameEn', 80);
+        });
+        offerNameEn.addEventListener('blur', () => {
+            validateField('offerNameEn');
+        });
+    }
+    
+    // Offer Name (AR)
+    const offerNameAr = document.getElementById('offerNameAr');
+    if (offerNameAr) {
+        offerNameAr.addEventListener('input', () => {
+            updateCharCount('offerNameAr', 80);
+        });
+        offerNameAr.addEventListener('blur', () => {
+            validateField('offerNameAr');
+        });
+    }
+    
+    // Description (EN)
+    const descEn = document.getElementById('offerDescEn');
+    if (descEn) {
+        descEn.addEventListener('input', function() {
+            updateCharCount('offerDescEn', 400);
+            autoGrowTextarea(this);
+        });
+        descEn.addEventListener('blur', () => {
+            validateField('offerDescEn');
+        });
+    }
+    
+    // Description (AR)
+    const descAr = document.getElementById('offerDescAr');
+    if (descAr) {
+        descAr.addEventListener('input', function() {
+            updateCharCount('offerDescAr', 400);
+            autoGrowTextarea(this);
+        });
+        descAr.addEventListener('blur', () => {
+            validateField('offerDescAr');
+        });
+    }
+    
+    // Time fields validation
+    const startTime = document.getElementById('offerStartTime');
+    const endTime = document.getElementById('offerEndTime');
+    if (startTime) startTime.addEventListener('change', validateTimeFields);
+    if (endTime) endTime.addEventListener('change', validateTimeFields);
+    
+    // Offer Type Cards (new style)
+    const offerTypeCards = document.querySelectorAll('.offer-type-card');
+    const offerTypeInput = document.getElementById('offerType');
+    
+    offerTypeCards.forEach(card => {
+        card.addEventListener('click', function() {
+            selectOfferType(this, offerTypeCards, offerTypeInput);
+        });
+        
+        card.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                selectOfferType(this, offerTypeCards, offerTypeInput);
+            }
+        });
+    });
+    
+    // Day buttons with ARIA
+    const dayBtns = document.querySelectorAll('.day-btn');
+    dayBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+            this.setAttribute('aria-pressed', this.classList.contains('active'));
+        });
+    });
+    
+    // Select All Days button
+    const selectAllBtn = document.getElementById('selectAllDays');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', function() {
+            dayBtns.forEach(btn => {
+                btn.classList.add('active');
+                btn.setAttribute('aria-pressed', 'true');
+            });
+        });
+    }
+    
+    // Clear Days button
+    const clearDaysBtn = document.getElementById('clearDays');
+    if (clearDaysBtn) {
+        clearDaysBtn.addEventListener('click', function() {
+            dayBtns.forEach(btn => {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-pressed', 'false');
+            });
+        });
+    }
+    
+    // Status toggle
+    const statusToggle = document.getElementById('offerActiveToggle');
+    const statusText = document.getElementById('toggleStatusText');
+    if (statusToggle && statusText) {
+        statusToggle.addEventListener('change', function() {
+            if (this.checked) {
+                statusText.textContent = 'Active';
+                statusText.className = 'toggle-label active';
+            } else {
+                statusText.textContent = 'Inactive';
+                statusText.className = 'toggle-label inactive';
+            }
+        });
+    }
+}
+
+// Select offer type handler
+function selectOfferType(selectedCard, allCards, hiddenInput) {
+    // Update ARIA and active state
+    allCards.forEach(card => {
+        card.classList.remove('active');
+        card.setAttribute('aria-checked', 'false');
+    });
+    
+    selectedCard.classList.add('active');
+    selectedCard.setAttribute('aria-checked', 'true');
+    
+    const selectedType = selectedCard.getAttribute('data-type');
+    
+    // Update hidden input
+    if (hiddenInput) {
+        hiddenInput.value = selectedType;
+    }
+    
+    // Update UI based on offer type
+    updateOfferTypeDetails(selectedType);
+}
+
+// Navigate to a specific wizard step
+function goToStep(stepNum) {
+    if (stepNum < 1 || stepNum > 3) return;
+    
+    currentOfferStep = stepNum;
+    
+    // Update step visibility
+    document.querySelectorAll('.wizard-step-content').forEach((content, index) => {
+        content.classList.toggle('active', index + 1 === stepNum);
+    });
+    
+    // Update stepper indicators
+    document.querySelectorAll('.step-item').forEach((item, index) => {
+        const stepIndex = index + 1;
+        item.classList.remove('active', 'completed');
+        if (stepIndex === stepNum) {
+            item.classList.add('active');
+        } else if (stepIndex < stepNum) {
+            item.classList.add('completed');
+        }
+    });
+    
+    // Update footer buttons
+    const prevBtn = document.getElementById('offerPrevBtn');
+    const nextBtn = document.getElementById('offerNextBtn');
+    const publishBtn = document.getElementById('offerPublishBtn');
+    
+    if (prevBtn) prevBtn.style.display = stepNum > 1 ? 'flex' : 'none';
+    if (nextBtn) nextBtn.style.display = stepNum < 3 ? 'flex' : 'none';
+    if (publishBtn) publishBtn.style.display = stepNum === 3 ? 'flex' : 'none';
+    
+    // Announce for accessibility
+    const announcer = document.getElementById('selectionAnnouncer');
+    if (announcer) {
+        const stepNames = ['Basic Info', 'Products', 'Review & Publish'];
+        announcer.textContent = `Navigated to step ${stepNum}: ${stepNames[stepNum - 1]}`;
+    }
+}
+
+// ==================== Confirmation Modal ====================
+
+function openConfirmModal() {
+    // Update preview before opening
+    updateOfferPreview();
+    
+    // Reset checkboxes
+    document.querySelectorAll('.checklist-item input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+    });
+    
+    // Disable publish button
+    const publishBtn = document.getElementById('confirmPublishBtn');
+    if (publishBtn) publishBtn.disabled = true;
+    
+    // Show modal
+    const overlay = document.getElementById('confirmModalOverlay');
+    const modal = document.getElementById('confirmPublishModal');
+    
+    if (overlay) overlay.classList.add('active');
+    if (modal) {
+        modal.classList.add('active');
+        
+        // Focus first checkbox for accessibility
+        setTimeout(() => {
+            const firstCheckbox = modal.querySelector('input[type="checkbox"]');
+            if (firstCheckbox) firstCheckbox.focus();
+        }, 100);
+    }
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function closeConfirmModal() {
+    const overlay = document.getElementById('confirmModalOverlay');
+    const modal = document.getElementById('confirmPublishModal');
+    
+    if (overlay) overlay.classList.remove('active');
+    if (modal) modal.classList.remove('active');
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    // Return focus to publish button
+    const publishBtn = document.getElementById('offerPublishBtn');
+    if (publishBtn) publishBtn.focus();
+}
+
+function updatePublishButton() {
+    const checkboxes = document.querySelectorAll('.checklist-item input[type="checkbox"]');
+    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+    
+    const publishBtn = document.getElementById('confirmPublishBtn');
+    if (publishBtn) {
+        publishBtn.disabled = !allChecked;
+    }
+}
+
+function confirmAndPublish() {
+    // Close modal first
+    closeConfirmModal();
+    
+    // Then call the actual publish function
+    publishOffer();
+}
+
 // Store published offers
 let publishedOffers = [];
 
@@ -1574,7 +2077,7 @@ function publishOffer() {
         descAr: document.getElementById('offerDescAr')?.value || '',
         days: Array.from(document.querySelectorAll('.day-btn.active')).map(btn => btn.textContent),
         isActive: isActive,
-        products: [...selectedOfferProducts]
+        products: collectProductsForPublish()
     };
     
     // Add to published offers
@@ -1786,7 +2289,14 @@ function resetOfferForm() {
     // Reset form fields
     const inputs = document.querySelectorAll('#addOfferModal input, #addOfferModal textarea, #addOfferModal select');
     inputs.forEach(input => {
-        if (input.type === 'checkbox' || input.type === 'radio') {
+        if (input.type === 'checkbox') {
+            // Reset status toggle to checked (active by default)
+            if (input.id === 'offerActiveToggle') {
+                input.checked = true;
+            } else {
+                input.checked = false;
+            }
+        } else if (input.type === 'radio') {
             input.checked = false;
         } else if (input.id === 'offerType') {
             input.value = 'happy-hour';
@@ -1797,9 +2307,23 @@ function resetOfferForm() {
 
     // Reset days to all active
     const dayBtns = document.querySelectorAll('.day-btn');
-    dayBtns.forEach(btn => btn.classList.add('active'));
+    dayBtns.forEach(btn => {
+        btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+    });
 
-    // Reset offer type to happy-hour
+    // Reset offer type cards to happy-hour
+    const offerTypeCards = document.querySelectorAll('.offer-type-card');
+    offerTypeCards.forEach(card => {
+        card.classList.remove('active');
+        card.setAttribute('aria-checked', 'false');
+        if (card.getAttribute('data-type') === 'happy-hour') {
+            card.classList.add('active');
+            card.setAttribute('aria-checked', 'true');
+        }
+    });
+
+    // Also reset legacy offer-type-btn if present
     const offerTypeBtns = document.querySelectorAll('.offer-type-btn');
     offerTypeBtns.forEach(btn => {
         btn.classList.remove('active');
@@ -1811,6 +2335,22 @@ function resetOfferForm() {
     // Reset offer type details
     updateOfferTypeDetails('happy-hour');
 
+    // Reset char counts
+    updateCharCount('offerNameEn', 80);
+    updateCharCount('offerNameAr', 80);
+    updateCharCount('offerDescEn', 400);
+    updateCharCount('offerDescAr', 400);
+
+    // Reset validation errors
+    clearValidationErrors();
+
+    // Reset status toggle text
+    const statusText = document.getElementById('toggleStatusText');
+    if (statusText) {
+        statusText.textContent = 'Active';
+        statusText.className = 'toggle-label active';
+    }
+
     // Reset product selection
     selectedOfferProducts = [];
     const categorySelect = document.getElementById('offerCategorySelect');
@@ -1819,6 +2359,9 @@ function resetOfferForm() {
     if (productsContainer) productsContainer.style.display = 'none';
     const summaryContainer = document.getElementById('selectedProductsSummary');
     if (summaryContainer) summaryContainer.style.display = 'none';
+
+    // Reset Step 2 (new products system)
+    resetStep2();
 
     updateOfferWizard();
 }
@@ -1870,53 +2413,92 @@ function updateOfferTypeDetails(type) {
     const data = offerTypeData[type];
     if (!data) return;
     
-    const titleEl = document.getElementById('offerTypeTitle');
-    const descEl = document.getElementById('offerTypeDesc');
-    const iconEl = document.getElementById('offerTypeIcon');
-    const infoTitleEl = document.getElementById('offerTypeInfoTitle');
-    const infoDescEl = document.getElementById('offerTypeInfoDesc');
     const timeFieldsRow = document.getElementById('timeFieldsRow');
     const dateFieldsRow = document.getElementById('dateFieldsRow');
     const daysFieldRow = document.getElementById('daysFieldRow');
-    const offerTypeDetailsSection = document.getElementById('offerTypeDetails');
     const fixedPriceInfoCard = document.getElementById('fixedPriceInfoCard');
     
-    // Update details section content
-    if (titleEl) titleEl.textContent = data.title;
-    if (descEl) descEl.textContent = data.desc;
-    if (iconEl) iconEl.className = data.icon;
-    if (infoTitleEl) infoTitleEl.textContent = data.infoTitle;
-    if (infoDescEl) infoDescEl.textContent = data.infoDesc;
+    // Get dividers in the offer settings card
+    const dividers = document.querySelectorAll('#offerStep1 .form-card:last-child .form-divider');
     
-    // Always show the details section with settings header
-    if (offerTypeDetailsSection) offerTypeDetailsSection.style.display = 'block';
-    
-    // Toggle field visibility based on offer type
+    // Toggle field visibility based on offer type with smooth animations
     if (type === 'day-deal') {
         // Day Deal: show only days and descriptions
-        if (timeFieldsRow) timeFieldsRow.style.display = 'none';
-        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
-        if (daysFieldRow) daysFieldRow.style.display = 'block';
+        if (timeFieldsRow) {
+            timeFieldsRow.style.display = 'none';
+            timeFieldsRow.style.opacity = '0';
+        }
+        if (dateFieldsRow) {
+            dateFieldsRow.style.display = 'none';
+            dateFieldsRow.style.opacity = '0';
+        }
+        if (daysFieldRow) {
+            daysFieldRow.style.display = 'block';
+            setTimeout(() => daysFieldRow.style.opacity = '1', 10);
+        }
         if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+        // Hide first divider
+        if (dividers[0]) dividers[0].style.display = 'none';
     } else if (type === 'time-range') {
         // Time Range: show time fields, date fields, descriptions (no days)
-        if (timeFieldsRow) timeFieldsRow.style.display = 'grid';
-        if (dateFieldsRow) dateFieldsRow.style.display = 'grid';
-        if (daysFieldRow) daysFieldRow.style.display = 'none';
+        if (timeFieldsRow) {
+            timeFieldsRow.style.display = 'grid';
+            setTimeout(() => timeFieldsRow.style.opacity = '1', 10);
+        }
+        if (dateFieldsRow) {
+            dateFieldsRow.style.display = 'grid';
+            setTimeout(() => dateFieldsRow.style.opacity = '1', 10);
+        }
+        if (daysFieldRow) {
+            daysFieldRow.style.display = 'none';
+            daysFieldRow.style.opacity = '0';
+        }
         if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+        // Show first divider
+        if (dividers[0]) dividers[0].style.display = 'block';
     } else if (type === 'fixed-price') {
         // Fixed Price: show only info card and descriptions
-        if (timeFieldsRow) timeFieldsRow.style.display = 'none';
-        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
-        if (daysFieldRow) daysFieldRow.style.display = 'none';
-        if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'flex';
+        if (timeFieldsRow) {
+            timeFieldsRow.style.display = 'none';
+            timeFieldsRow.style.opacity = '0';
+        }
+        if (dateFieldsRow) {
+            dateFieldsRow.style.display = 'none';
+            dateFieldsRow.style.opacity = '0';
+        }
+        if (daysFieldRow) {
+            daysFieldRow.style.display = 'none';
+            daysFieldRow.style.opacity = '0';
+        }
+        if (fixedPriceInfoCard) {
+            fixedPriceInfoCard.style.display = 'flex';
+            setTimeout(() => fixedPriceInfoCard.style.opacity = '1', 10);
+        }
+        // Hide first divider
+        if (dividers[0]) dividers[0].style.display = 'none';
     } else {
         // Happy Hour: show days, time fields, descriptions
-        if (timeFieldsRow) timeFieldsRow.style.display = 'grid';
-        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
-        if (daysFieldRow) daysFieldRow.style.display = 'block';
+        if (timeFieldsRow) {
+            timeFieldsRow.style.display = 'grid';
+            setTimeout(() => timeFieldsRow.style.opacity = '1', 10);
+        }
+        if (dateFieldsRow) {
+            dateFieldsRow.style.display = 'none';
+            dateFieldsRow.style.opacity = '0';
+        }
+        if (daysFieldRow) {
+            daysFieldRow.style.display = 'block';
+            setTimeout(() => daysFieldRow.style.opacity = '1', 10);
+        }
         if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+        // Show first divider
+        if (dividers[0]) dividers[0].style.display = 'block';
     }
+    
+    // Clear time validation error when switching types
+    const timeError = document.getElementById('timeError');
+    if (timeError) timeError.textContent = '';
+    delete validationErrors['time'];
 }
 
 // Offer Type buttons selection
@@ -2015,7 +2597,13 @@ document.addEventListener('DOMContentLoaded', function() {
         statusToggle.addEventListener('change', function() {
             const statusText = document.getElementById('toggleStatusText');
             if (statusText) {
-                statusText.textContent = this.checked ? 'Active' : 'Inactive';
+                if (this.checked) {
+                    statusText.textContent = 'Active';
+                    statusText.className = 'toggle-label active';
+                } else {
+                    statusText.textContent = 'Inactive';
+                    statusText.className = 'toggle-label inactive';
+                }
             }
         });
     }
@@ -2217,10 +2805,18 @@ function editSelectedProduct(productId) {
 function updateOfferPreview() {
     // Status Badge
     const isActive = document.getElementById('offerActiveToggle')?.checked ?? true;
-    const statusBadge = document.querySelector('.preview-card .status-badge');
+    const statusBadge = document.getElementById('previewStatusBadge');
+    const statusText = document.getElementById('previewStatusText');
+    
     if (statusBadge) {
-        statusBadge.textContent = isActive ? 'Active' : 'Inactive';
-        statusBadge.className = 'status-badge ' + (isActive ? 'active' : 'inactive');
+        statusBadge.textContent = isActive ? 'Active' : 'Draft';
+        statusBadge.className = 'status-badge ' + (isActive ? 'active' : 'draft');
+        statusBadge.setAttribute('data-status', isActive ? 'active' : 'draft');
+    }
+    if (statusText) {
+        statusText.innerHTML = isActive 
+            ? '<span style="color: #059669;"><i class="fas fa-check-circle"></i> Active</span>' 
+            : '<span style="color: #f59e0b;"><i class="fas fa-pause-circle"></i> Draft</span>';
     }
     
     // Basic Information
@@ -2228,10 +2824,16 @@ function updateOfferPreview() {
     const nameAr = document.getElementById('offerNameAr')?.value || '-';
     const offerType = document.getElementById('offerType')?.value || 'happy-hour';
     const descEn = document.getElementById('offerDescEn')?.value || '-';
+    const descAr = document.getElementById('offerDescAr')?.value || '-';
     
     document.getElementById('previewNameEn').textContent = nameEn || '-';
     document.getElementById('previewNameAr').textContent = nameAr || '-';
     document.getElementById('previewDescEn').textContent = descEn || '-';
+    
+    const previewDescAr = document.getElementById('previewDescAr');
+    if (previewDescAr) {
+        previewDescAr.textContent = descAr || '-';
+    }
     
     // Offer type display name
     const typeNames = {
@@ -2267,9 +2869,11 @@ function updateOfferPreview() {
             activeDaysCount = activeDays.length;
             
             if (activeDays.length > 0) {
-                daysTags.innerHTML = activeDays.map(day => `<span class="preview-tag">${day}</span>`).join('');
+                daysTags.innerHTML = activeDays.map(day => 
+                    `<span class="preview-tag" role="listitem">${day}</span>`
+                ).join('');
             } else {
-                daysTags.innerHTML = '<span class="preview-tag">None selected</span>';
+                daysTags.innerHTML = '<span class="preview-tag" style="color: #f59e0b; background: #fffbeb;">None selected</span>';
             }
         } else {
             previewDaysItem.style.display = 'none';
@@ -2283,7 +2887,7 @@ function updateOfferPreview() {
             const endTime = document.getElementById('offerEndTime')?.value || '';
             const formattedStart = formatTime12Hour(startTime);
             const formattedEnd = formatTime12Hour(endTime);
-            document.getElementById('previewTime').textContent = `${formattedStart} - ${formattedEnd}`;
+            document.getElementById('previewTime').textContent = `${formattedStart} – ${formattedEnd}`;
         } else {
             previewTimeContainer.style.display = 'none';
             previewTimeItem.style.display = 'none';
@@ -2302,35 +2906,94 @@ function updateOfferPreview() {
         }
     }
     
-    // Products
+    // Products - Use step2SelectedProducts Map
     const productsList = document.getElementById('previewProductsList');
-    let totalSavings = 0;
+    const productsTable = document.getElementById('previewProductsTable');
+    const noProductsMsg = document.getElementById('noProductsMsg');
     
-    if (selectedOfferProducts.length === 0) {
-        productsList.innerHTML = '<p class="no-products-msg">No products selected</p>';
-    } else {
-        productsList.innerHTML = selectedOfferProducts.map(product => {
+    let totalSavings = 0;
+    const productsArray = [];
+    
+    // Collect products from the step2SelectedProducts Map
+    if (typeof step2SelectedProducts !== 'undefined' && step2SelectedProducts.size > 0) {
+        step2SelectedProducts.forEach((data, productId) => {
+            // Find product details from allProducts
+            const product = allProducts.find(p => p.id === productId);
+            if (product) {
+                const qty = data.qty || 1;
+                const offerPrice = data.offerPrice || product.price;
+                const basePrice = product.price;
+                const savings = (basePrice - offerPrice) * qty;
+                totalSavings += savings;
+                
+                productsArray.push({
+                    name: product.name,
+                    qty: qty,
+                    basePrice: basePrice,
+                    offerPrice: offerPrice,
+                    savings: savings
+                });
+            }
+        });
+    } else if (selectedOfferProducts && selectedOfferProducts.length > 0) {
+        // Fallback to old array format
+        selectedOfferProducts.forEach(product => {
             const savings = (product.basePrice - product.offerPrice) * product.quantity;
             totalSavings += savings;
-            return `
-                <div class="preview-product-item">
-                    <div class="preview-product-info">
-                        <span class="preview-product-name">${product.name}</span>
-                        <span class="preview-product-meta">Qty: ${product.quantity}</span>
-                    </div>
-                    <div class="preview-product-details">
-                        <span class="preview-product-base">$${product.basePrice.toFixed(2)}</span>
-                        <span class="preview-product-price">$${product.offerPrice.toFixed(2)}</span>
-                    </div>
-                </div>
-            `;
-        }).join('');
+            productsArray.push({
+                name: product.name,
+                qty: product.quantity,
+                basePrice: product.basePrice,
+                offerPrice: product.offerPrice,
+                savings: savings
+            });
+        });
+    }
+    
+    // Render products table
+    if (productsArray.length === 0) {
+        if (productsList) productsList.innerHTML = '';
+        if (productsTable) productsTable.style.display = 'none';
+        if (noProductsMsg) noProductsMsg.classList.add('visible');
+    } else {
+        if (noProductsMsg) noProductsMsg.classList.remove('visible');
+        if (productsTable) productsTable.style.display = 'table';
+        
+        if (productsList) {
+            productsList.innerHTML = productsArray.map(product => `
+                <tr>
+                    <td><span class="preview-product-name">${product.name}</span></td>
+                    <td class="text-center"><span class="preview-product-qty">${product.qty}</span></td>
+                    <td class="text-right"><span class="preview-original-price">$${product.basePrice.toFixed(2)}</span></td>
+                    <td class="text-right"><span class="preview-offer-price">$${product.offerPrice.toFixed(2)}</span></td>
+                    <td class="text-right">
+                        <span class="preview-savings">
+                            <i class="fas fa-arrow-down" aria-hidden="true"></i>
+                            $${product.savings.toFixed(2)}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
     }
     
     // Update stats
-    document.getElementById('statProductCount').textContent = selectedOfferProducts.length;
+    document.getElementById('statProductCount').textContent = productsArray.length;
     document.getElementById('statTotalSavings').textContent = `$${totalSavings.toFixed(0)}`;
     document.getElementById('statDaysCount').textContent = activeDaysCount;
+    
+    // Update confirmation modal summary if it exists
+    const confirmOfferName = document.getElementById('confirmOfferName');
+    const confirmOfferStatus = document.getElementById('confirmOfferStatus');
+    const confirmProductCount = document.getElementById('confirmProductCount');
+    
+    if (confirmOfferName) confirmOfferName.textContent = nameEn || '-';
+    if (confirmOfferStatus) {
+        confirmOfferStatus.innerHTML = isActive 
+            ? '<span style="color: #059669;">Active</span>' 
+            : '<span style="color: #f59e0b;">Draft</span>';
+    }
+    if (confirmProductCount) confirmProductCount.textContent = `${productsArray.length} item${productsArray.length !== 1 ? 's' : ''}`;
 }
 
 // Format time from 24-hour (HH:mm) to 12-hour (hh:mm AM/PM)
@@ -2358,4 +3021,516 @@ function formatDateNice(dateStr) {
     
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
+}
+
+// ============================================
+// STEP 2: PRODUCTS SELECTION - NEW SYSTEM
+// ============================================
+
+// Enhanced product data with stock info
+const allProducts = [
+    // Burgers
+    { id: 1, name: 'Classic Burger', price: 12.99, basePrice: 14.99, inStock: true, category: 'burgers' },
+    { id: 2, name: 'Cheese Burger', price: 13.99, basePrice: 15.99, inStock: true, category: 'burgers' },
+    { id: 3, name: 'Double Bacon Burger', price: 16.99, basePrice: 19.99, inStock: false, category: 'burgers' },
+    { id: 4, name: 'Mushroom Swiss Burger', price: 14.99, basePrice: 17.99, inStock: true, category: 'burgers' },
+    { id: 5, name: 'BBQ Ranch Burger', price: 15.49, basePrice: 18.49, inStock: true, category: 'burgers' },
+    // Pizzas
+    { id: 6, name: 'Margherita Pizza', price: 15.99, basePrice: 18.99, inStock: true, category: 'pizzas' },
+    { id: 7, name: 'Pepperoni Pizza', price: 17.99, basePrice: 20.99, inStock: true, category: 'pizzas' },
+    { id: 8, name: 'Supreme Pizza', price: 19.99, basePrice: 23.99, inStock: true, category: 'pizzas' },
+    { id: 9, name: 'Hawaiian Pizza', price: 16.99, basePrice: 19.99, inStock: false, category: 'pizzas' },
+    { id: 10, name: 'BBQ Chicken Pizza', price: 18.49, basePrice: 21.99, inStock: true, category: 'pizzas' },
+    // Drinks
+    { id: 11, name: 'Coca Cola', price: 2.99, basePrice: 3.49, inStock: true, category: 'drinks' },
+    { id: 12, name: 'Sprite', price: 2.99, basePrice: 3.49, inStock: true, category: 'drinks' },
+    { id: 13, name: 'Fresh Orange Juice', price: 4.99, basePrice: 5.99, inStock: true, category: 'drinks' },
+    { id: 14, name: 'Mango Smoothie', price: 5.99, basePrice: 7.49, inStock: false, category: 'drinks' },
+    { id: 15, name: 'Iced Coffee', price: 4.49, basePrice: 5.49, inStock: true, category: 'drinks' },
+    // Desserts
+    { id: 16, name: 'Chocolate Brownie', price: 5.99, basePrice: 7.49, inStock: true, category: 'desserts' },
+    { id: 17, name: 'Cheesecake Slice', price: 6.49, basePrice: 8.49, inStock: true, category: 'desserts' },
+    { id: 18, name: 'Ice Cream Sundae', price: 4.99, basePrice: 6.49, inStock: true, category: 'desserts' },
+    { id: 19, name: 'Apple Pie', price: 5.49, basePrice: 6.99, inStock: false, category: 'desserts' },
+    // Sides
+    { id: 20, name: 'French Fries', price: 3.49, basePrice: 4.49, inStock: true, category: 'sides' },
+    { id: 21, name: 'Onion Rings', price: 4.49, basePrice: 5.49, inStock: true, category: 'sides' },
+    { id: 22, name: 'Mozzarella Sticks', price: 5.99, basePrice: 7.49, inStock: true, category: 'sides' },
+    { id: 23, name: 'Chicken Wings (6pc)', price: 8.99, basePrice: 10.99, inStock: true, category: 'sides' },
+    { id: 24, name: 'Garlic Bread', price: 3.99, basePrice: 4.99, inStock: false, category: 'sides' }
+];
+
+// Selection state: Map<productId, { id, qty, offerPrice }>
+let step2SelectedProducts = new Map();
+let step2SearchTerm = '';
+let step2FilterInStock = false;
+let step2SelectedCategory = '';
+let step2Initialized = false;
+
+// Initialize Step 2 when modal opens or step changes
+function initStep2Products() {
+    if (step2Initialized) return;
+    step2Initialized = true;
+    
+    // Category selector
+    const categorySelect = document.getElementById('offerCategorySelect');
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            step2SelectedCategory = this.value;
+            renderStep2Products();
+        });
+    }
+    
+    // Search input
+    const searchInput = document.getElementById('productsSearchInput');
+    if (searchInput) {
+        let searchTimeout;
+        searchInput.addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                step2SearchTerm = this.value.toLowerCase().trim();
+                renderStep2Products();
+            }, 200);
+        });
+    }
+    
+    // In-stock filter
+    const inStockFilter = document.getElementById('inStockFilter');
+    if (inStockFilter) {
+        inStockFilter.addEventListener('change', function() {
+            step2FilterInStock = this.checked;
+            renderStep2Products();
+        });
+    }
+    
+    // Bulk actions
+    const selectAllBtn = document.getElementById('selectAllPageBtn');
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', selectAllVisibleProducts);
+    }
+    
+    const clearPageBtn = document.getElementById('clearPageBtn');
+    if (clearPageBtn) {
+        clearPageBtn.addEventListener('click', clearVisibleProducts);
+    }
+    
+    // Toggle selected panel
+    const toggleBtn = document.getElementById('toggleSelectedPanel');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            const content = document.getElementById('selectedPanelContent');
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+            this.setAttribute('aria-expanded', !isExpanded);
+            content.classList.toggle('collapsed', isExpanded);
+        });
+    }
+    
+    // Initial render
+    renderStep2Products();
+    renderSelectedProductsPanel();
+}
+
+// Get filtered products based on current filters
+function getFilteredProducts() {
+    return allProducts.filter(product => {
+        // Category filter
+        if (step2SelectedCategory && product.category !== step2SelectedCategory) {
+            return false;
+        }
+        
+        // Search filter
+        if (step2SearchTerm && !product.name.toLowerCase().includes(step2SearchTerm)) {
+            return false;
+        }
+        
+        // In-stock filter
+        if (step2FilterInStock && !product.inStock) {
+            return false;
+        }
+        
+        return true;
+    });
+}
+
+// Render products table
+function renderStep2Products() {
+    const tbody = document.getElementById('productsTableBody');
+    const loadingState = document.getElementById('productsLoadingState');
+    const emptyState = document.getElementById('productsEmptyState');
+    const table = document.querySelector('.products-table');
+    
+    if (!tbody) return;
+    
+    // Show loading briefly
+    if (loadingState) loadingState.style.display = 'block';
+    if (emptyState) emptyState.style.display = 'none';
+    if (table) table.style.display = 'none';
+    
+    setTimeout(() => {
+        const filteredProducts = getFilteredProducts();
+        
+        if (loadingState) loadingState.style.display = 'none';
+        
+        if (filteredProducts.length === 0) {
+            if (emptyState) emptyState.style.display = 'flex';
+            if (table) table.style.display = 'none';
+            return;
+        }
+        
+        if (table) table.style.display = 'table';
+        if (emptyState) emptyState.style.display = 'none';
+        
+        tbody.innerHTML = filteredProducts.map(product => {
+            const isSelected = step2SelectedProducts.has(product.id);
+            const stockClass = product.inStock ? '' : 'out-of-stock';
+            const selectedClass = isSelected ? 'selected' : '';
+            const stockBadge = product.inStock 
+                ? '<span class="stock-badge in-stock">In Stock</span>'
+                : '<span class="stock-badge out-of-stock">Out of Stock</span>';
+            
+            return `
+                <tr class="${stockClass} ${selectedClass}" 
+                    data-product-id="${product.id}"
+                    tabindex="0"
+                    role="row"
+                    aria-selected="${isSelected}"
+                    onclick="toggleProductSelection(${product.id}, event)"
+                    onkeydown="handleProductRowKeydown(event, ${product.id})">
+                    <td class="col-checkbox" data-label="">
+                        <input type="checkbox" 
+                               class="product-row-checkbox"
+                               ${isSelected ? 'checked' : ''}
+                               ${!product.inStock ? 'disabled' : ''}
+                               aria-label="Select ${product.name}"
+                               onchange="toggleProductSelection(${product.id}, event)"
+                               onclick="event.stopPropagation()">
+                    </td>
+                    <td class="col-name" data-label="Product">
+                        <div class="product-name-cell">
+                            <span class="product-name-text">${product.name}</span>
+                        </div>
+                    </td>
+                    <td class="col-price" data-label="Offer Price">$${product.price.toFixed(2)}</td>
+                    <td class="col-base-price" data-label="Base Price">$${product.basePrice.toFixed(2)}</td>
+                    <td class="col-stock" data-label="Stock">${stockBadge}</td>
+                </tr>
+            `;
+        }).join('');
+        
+        announceSelection();
+    }, 150);
+}
+
+// Toggle product selection
+function toggleProductSelection(productId, event) {
+    if (event) event.stopPropagation();
+    
+    const product = allProducts.find(p => p.id === productId);
+    if (!product || !product.inStock) return;
+    
+    if (step2SelectedProducts.has(productId)) {
+        step2SelectedProducts.delete(productId);
+    } else {
+        step2SelectedProducts.set(productId, { id: productId, qty: 1, offerPrice: product.price });
+    }
+    
+    // Update row appearance
+    const row = document.querySelector(`tr[data-product-id="${productId}"]`);
+    if (row) {
+        const isSelected = step2SelectedProducts.has(productId);
+        row.classList.toggle('selected', isSelected);
+        row.setAttribute('aria-selected', isSelected);
+        const checkbox = row.querySelector('.product-row-checkbox');
+        if (checkbox) checkbox.checked = isSelected;
+    }
+    
+    renderSelectedProductsPanel();
+    updateStep2NextButton();
+    announceSelection();
+}
+
+// Handle keyboard navigation on product rows
+function handleProductRowKeydown(event, productId) {
+    if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleProductSelection(productId, event);
+    } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const nextRow = event.target.nextElementSibling;
+        if (nextRow) nextRow.focus();
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        const prevRow = event.target.previousElementSibling;
+        if (prevRow) prevRow.focus();
+    }
+}
+
+// Select all visible products
+function selectAllVisibleProducts() {
+    const filteredProducts = getFilteredProducts();
+    filteredProducts.forEach(product => {
+        if (product.inStock && !step2SelectedProducts.has(product.id)) {
+            step2SelectedProducts.set(product.id, { id: product.id, qty: 1, offerPrice: product.price });
+        }
+    });
+    renderStep2Products();
+    renderSelectedProductsPanel();
+    updateStep2NextButton();
+    announceSelection();
+}
+
+// Clear selection for visible products
+function clearVisibleProducts() {
+    const filteredProducts = getFilteredProducts();
+    filteredProducts.forEach(product => {
+        step2SelectedProducts.delete(product.id);
+    });
+    renderStep2Products();
+    renderSelectedProductsPanel();
+    updateStep2NextButton();
+    announceSelection();
+}
+
+// Render selected products panel
+function renderSelectedProductsPanel() {
+    const emptyState = document.getElementById('selectedEmptyState');
+    const listContainer = document.getElementById('selectedProductsList');
+    const summaryFooter = document.getElementById('selectedSummaryFooter');
+    const panelTitle = document.querySelector('.selected-panel-title');
+    const toolbarCountBadge = document.getElementById('selectedCountBadge');
+    
+    if (!listContainer) return;
+    
+    const selectedCount = step2SelectedProducts.size;
+    
+    // Update toolbar counter badge
+    if (toolbarCountBadge) {
+        toolbarCountBadge.textContent = selectedCount;
+    }
+    
+    // Update title badge
+    if (panelTitle) {
+        const existingBadge = panelTitle.querySelector('.counter-badge');
+        if (existingBadge) existingBadge.remove();
+        if (selectedCount > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'counter-badge';
+            badge.textContent = selectedCount;
+            panelTitle.appendChild(badge);
+        }
+    }
+    
+    if (selectedCount === 0) {
+        if (emptyState) emptyState.style.display = 'flex';
+        if (listContainer) listContainer.style.display = 'none';
+        if (summaryFooter) summaryFooter.style.display = 'none';
+        return;
+    }
+    
+    if (emptyState) emptyState.style.display = 'none';
+    if (listContainer) listContainer.style.display = 'block';
+    if (summaryFooter) summaryFooter.style.display = 'block';
+    
+    // Get selected product details
+    const selectedItems = Array.from(step2SelectedProducts.values()).map(item => {
+        const product = allProducts.find(p => p.id === item.id);
+        return { ...product, qty: item.qty, offerPrice: item.offerPrice };
+    });
+    
+    listContainer.innerHTML = selectedItems.map(item => `
+        <div class="selected-product-item" data-product-id="${item.id}">
+            <div class="selected-item-header">
+                <span class="selected-item-name">${item.name}</span>
+                <button class="selected-item-remove" 
+                        onclick="removeFromSelected(${item.id})"
+                        aria-label="Remove ${item.name}">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="selected-item-prices">
+                <div class="offer-price-input-group">
+                    <label class="offer-price-label">Offer Price</label>
+                    <div class="offer-price-input-wrapper">
+                        <span class="currency-symbol">$</span>
+                        <input type="number" 
+                               class="offer-price-input" 
+                               value="${item.offerPrice.toFixed(2)}" 
+                               step="0.01" 
+                               min="0"
+                               onchange="updateProductOfferPrice(${item.id}, this.value)"
+                               aria-label="Offer price for ${item.name}">
+                    </div>
+                </div>
+                <span class="selected-item-base-price">Base: $${item.basePrice.toFixed(2)}</span>
+            </div>
+            <div class="qty-stepper">
+                <button class="qty-stepper-btn" 
+                        onclick="updateProductQty(${item.id}, -1)"
+                        ${item.qty <= 1 ? 'disabled' : ''}
+                        aria-label="Decrease quantity">
+                    <i class="fas fa-minus"></i>
+                </button>
+                <span class="qty-stepper-value">${item.qty}</span>
+                <button class="qty-stepper-btn" 
+                        onclick="updateProductQty(${item.id}, 1)"
+                        aria-label="Increase quantity">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Update summary
+    const totalItems = selectedItems.length;
+    const totalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
+    const totalValue = selectedItems.reduce((sum, item) => sum + (item.offerPrice * item.qty), 0);
+    
+    const totalItemsEl = document.getElementById('totalItemsCount');
+    const totalQtyEl = document.getElementById('totalQtyCount');
+    const totalValueEl = document.getElementById('totalOfferValue');
+    
+    if (totalItemsEl) totalItemsEl.textContent = totalItems;
+    if (totalQtyEl) totalQtyEl.textContent = totalQty;
+    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toFixed(2)}`;
+}
+
+// Remove product from selection
+function removeFromSelected(productId) {
+    step2SelectedProducts.delete(productId);
+    renderStep2Products();
+    renderSelectedProductsPanel();
+    updateStep2NextButton();
+    announceSelection();
+}
+
+// Update product quantity
+function updateProductQty(productId, delta) {
+    const item = step2SelectedProducts.get(productId);
+    if (!item) return;
+    
+    const newQty = Math.max(1, item.qty + delta);
+    step2SelectedProducts.set(productId, { ...item, qty: newQty });
+    
+    renderSelectedProductsPanel();
+}
+
+// Update product offer price
+function updateProductOfferPrice(productId, newPrice) {
+    const item = step2SelectedProducts.get(productId);
+    if (!item) return;
+    
+    const price = parseFloat(newPrice) || 0;
+    step2SelectedProducts.set(productId, { ...item, offerPrice: price });
+    
+    // Update summary without full re-render
+    updateSelectedSummary();
+}
+
+// Update just the summary footer
+function updateSelectedSummary() {
+    const selectedItems = Array.from(step2SelectedProducts.values()).map(item => {
+        const product = allProducts.find(p => p.id === item.id);
+        return { ...product, qty: item.qty, offerPrice: item.offerPrice };
+    });
+    
+    const totalItems = selectedItems.length;
+    const totalQty = selectedItems.reduce((sum, item) => sum + item.qty, 0);
+    const totalValue = selectedItems.reduce((sum, item) => sum + (item.offerPrice * item.qty), 0);
+    
+    const totalItemsEl = document.getElementById('totalItemsCount');
+    const totalQtyEl = document.getElementById('totalQtyCount');
+    const totalValueEl = document.getElementById('totalOfferValue');
+    
+    if (totalItemsEl) totalItemsEl.textContent = totalItems;
+    if (totalQtyEl) totalQtyEl.textContent = totalQty;
+    if (totalValueEl) totalValueEl.textContent = `$${totalValue.toFixed(2)}`;
+}
+
+// Announce selection change for screen readers
+function announceSelection() {
+    const announcer = document.getElementById('selectionAnnouncer');
+    if (announcer) {
+        const count = step2SelectedProducts.size;
+        announcer.textContent = `${count} product${count !== 1 ? 's' : ''} selected`;
+    }
+}
+
+// Update Next button state for Step 2
+function updateStep2NextButton() {
+    const nextBtn = document.getElementById('offerNextBtn');
+    if (nextBtn && currentOfferStep === 2) {
+        const hasProducts = step2SelectedProducts.size > 0;
+        nextBtn.disabled = !hasProducts;
+        nextBtn.setAttribute('aria-disabled', !hasProducts);
+    }
+}
+
+// Validate Step 2
+function validateStep2() {
+    if (step2SelectedProducts.size === 0) {
+        // Show error
+        const announcer = document.getElementById('selectionAnnouncer');
+        if (announcer) {
+            announcer.textContent = 'Please select at least one product before proceeding.';
+        }
+        return false;
+    }
+    return true;
+}
+
+// Collect Step 2 data for preview/publish
+function collectStep2Data() {
+    return Array.from(step2SelectedProducts.values()).map(item => {
+        const product = allProducts.find(p => p.id === item.id);
+        return {
+            id: product.id,
+            name: product.name,
+            offerPrice: item.offerPrice,
+            basePrice: product.basePrice,
+            quantity: item.qty
+        };
+    });
+}
+
+// Collect products for publishing - supports both new Map and old array format
+function collectProductsForPublish() {
+    // Try new step2SelectedProducts Map first
+    if (typeof step2SelectedProducts !== 'undefined' && step2SelectedProducts.size > 0) {
+        return Array.from(step2SelectedProducts.values()).map(item => {
+            const product = allProducts.find(p => p.id === item.id);
+            return {
+                id: product?.id || item.id,
+                name: product?.name || 'Unknown Product',
+                offerPrice: item.offerPrice || product?.price || 0,
+                basePrice: product?.price || 0,
+                quantity: item.qty || 1
+            };
+        });
+    }
+    
+    // Fallback to old selectedOfferProducts array
+    if (typeof selectedOfferProducts !== 'undefined' && selectedOfferProducts.length > 0) {
+        return [...selectedOfferProducts];
+    }
+    
+    return [];
+}
+
+// Reset Step 2 state
+function resetStep2() {
+    step2SelectedProducts.clear();
+    step2SearchTerm = '';
+    step2FilterInStock = false;
+    step2SelectedCategory = '';
+    step2Initialized = false;
+    
+    // Reset UI elements
+    const searchInput = document.getElementById('productsSearchInput');
+    if (searchInput) searchInput.value = '';
+    
+    const inStockFilter = document.getElementById('inStockFilter');
+    if (inStockFilter) inStockFilter.checked = false;
+    
+    const categorySelect = document.getElementById('offerCategorySelect');
+    if (categorySelect) categorySelect.value = '';
 }
