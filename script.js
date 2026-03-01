@@ -96,7 +96,12 @@ document.addEventListener('DOMContentLoaded', function() {
     filteredRestaurants = [...restaurants];
     filteredSystemRoles = [...systemRoles];
     updateStats();
-    renderRestaurants();
+    
+    // Determine page context based on current page
+    const isMembersPage = document.getElementById('restaurantsPage')?.closest('body')?.querySelector('.page-header h1')?.textContent?.includes('Members');
+    const pageContext = isMembersPage ? 'members' : 'restaurants';
+    
+    renderRestaurants(pageContext);
     renderSystemRoles();
 });
 
@@ -182,7 +187,8 @@ function handleAddRestaurant(event) {
     
     // Update UI
     updateStats();
-    renderRestaurants();
+    const pageContext = getCurrentPageContext();
+    renderRestaurants(pageContext);
     closeAddRestaurantModal();
     
     // Show success message (optional)
@@ -266,7 +272,8 @@ function confirmDeleteRestaurant() {
         restaurants.splice(index, 1);
         filteredRestaurants = [...restaurants];
         updateStats();
-        renderRestaurants();
+        const pageContext = getCurrentPageContext();
+        renderRestaurants(pageContext);
         closeDeleteWarning();
         closeRestaurantDetails();
         
@@ -329,7 +336,8 @@ function showPage(pageId) {
 }
 
 // Render Restaurants with Pagination
-function renderRestaurants() {
+// pageContext: 'restaurants' for restaurants page, 'members' for members page
+function renderRestaurants(pageContext = 'restaurants') {
     const totalItems = filteredRestaurants.length;
     const totalPages = Math.ceil(totalItems / itemsPerPage);
     
@@ -350,12 +358,18 @@ function renderRestaurants() {
     
     // Render items
     const grid = document.getElementById('restaurantsGrid');
+    
     if (pageItems.length === 0) {
         grid.innerHTML = '<div style="text-align: center; padding: 60px 20px; color: #6b7280; grid-column: 1/-1;"><i class="fas fa-store" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3; display: block;"></i><p style="font-size: 16px;">No restaurants found</p></div>';
     } else {
-        grid.innerHTML = pageItems.map(restaurant => `
-            <div class="restaurant-card ${restaurant.status}" onclick="openRestaurantMembers(${restaurant.id}, '${restaurant.name}')">
-                 <div class="restaurant-card-header">
+        grid.innerHTML = pageItems.map(restaurant => {
+            const clickHandler = pageContext === 'members' 
+                ? `openRestaurantMembers(${restaurant.id}, '${restaurant.name}')` 
+                : `openRestaurantDetails(${restaurant.id})`;
+            
+            return `
+            <div class="restaurant-card ${restaurant.status}" onclick="${clickHandler}">
+                <div class="restaurant-card-header">
                     <div class="restaurant-icon">
                         <i class="fas fa-building"></i>
                     </div>
@@ -389,7 +403,8 @@ function renderRestaurants() {
                     </div>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
     
     // Update pagination info
@@ -466,7 +481,10 @@ function goToPage(page) {
     if (page < 1 || page > totalPages) return;
     
     currentPage = page;
-    renderRestaurants();
+    
+    // Determine context from current page
+    const pageContext = getCurrentPageContext();
+    renderRestaurants(pageContext);
     
     // Scroll to top of grid
     document.getElementById('restaurantsGrid').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -486,7 +504,10 @@ function filterRestaurants() {
     });
     
     currentPage = 1; // Reset to first page when filtering
-    renderRestaurants();
+    
+    // Determine context from current page
+    const pageContext = getCurrentPageContext();
+    renderRestaurants(pageContext);
 }
 
 // Sort Restaurants
@@ -506,7 +527,24 @@ function sortRestaurants() {
     }
     
     currentPage = 1; // Reset to first page when sorting
-    renderRestaurants();
+    
+    // Determine context from current page
+    const pageContext = getCurrentPageContext();
+    renderRestaurants(pageContext);
+}
+
+// Helper function to determine current page context
+function getCurrentPageContext() {
+    // Check if we're in member.html by looking at the page title or URL
+    const pageTitle = document.querySelector('.page-header h1')?.textContent || '';
+    const currentFile = window.location.pathname.split('/').pop();
+    
+    // If we're in member.html or the page title includes "Members", use members context
+    if (currentFile === 'member.html' || pageTitle.includes('Members')) {
+        return 'members';
+    }
+    
+    return 'restaurants';
 }
 
 // Change View
@@ -1352,4 +1390,972 @@ document.addEventListener('DOMContentLoaded', function() {
     // Sidebar close on mobile when clicking outside is handled by the existing click listener above
 });
 
+// Menu Page Tab Switching
+document.addEventListener('DOMContentLoaded', function() {
+    const menuTabs = document.querySelectorAll('.menu-tab');
+    const menuTabContents = document.querySelectorAll('.menu-tab-content');
+    
+    menuTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs
+            menuTabs.forEach(t => t.classList.remove('active'));
+            
+            // Add active class to clicked tab
+            this.classList.add('active');
+            
+            // Hide all tab contents
+            menuTabContents.forEach(content => content.classList.remove('active'));
+            
+            // Show target tab content
+            const targetContent = document.getElementById(targetTab + '-content');
+            if (targetContent) {
+                targetContent.classList.add('active');
+            }
+        });
+    });
+});
 
+// Menu Page Functions
+function openAddCategoryModal() {
+    alert('Add Category modal - Feature coming soon!');
+}
+
+function openAddProductModal() {
+    alert('Add Product modal - Feature coming soon!');
+}
+
+// Filter Dropdown Functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const filterBtn = document.getElementById('filterDropdownBtn');
+    const filterMenu = document.getElementById('filterDropdownMenu');
+    const filterLabel = document.getElementById('filterLabel');
+    const filterOptions = document.querySelectorAll('.filter-option');
+    
+    if (filterBtn && filterMenu) {
+        // Toggle dropdown
+        filterBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            filterMenu.classList.toggle('show');
+        });
+        
+        // Handle option selection
+        filterOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const value = this.getAttribute('data-value');
+                const text = this.textContent;
+                
+                // Update label
+                filterLabel.textContent = text;
+                
+                // Update active state
+                filterOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Close dropdown
+                filterMenu.classList.remove('show');
+                
+                // Trigger filter (you can add filter logic here)
+                console.log('Filter changed to:', value);
+            });
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!filterBtn.contains(e.target) && !filterMenu.contains(e.target)) {
+                filterMenu.classList.remove('show');
+            }
+        });
+    }
+});
+
+// ========== Offer Modal Functions ==========
+let currentOfferStep = 1;
+const totalOfferSteps = 3;
+
+function openAddOfferModal() {
+    const modal = document.getElementById('addOfferModal');
+    if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+        currentOfferStep = 1;
+        updateOfferWizard();
+    }
+}
+
+function closeAddOfferModal() {
+    const modal = document.getElementById('addOfferModal');
+    if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        resetOfferForm();
+    }
+}
+
+function nextOfferStep() {
+    if (currentOfferStep < totalOfferSteps) {
+        currentOfferStep++;
+        updateOfferWizard();
+        
+        // Update preview when reaching the last step
+        if (currentOfferStep === totalOfferSteps) {
+            updateOfferPreview();
+        }
+    }
+}
+
+function prevOfferStep() {
+    if (currentOfferStep > 1) {
+        currentOfferStep--;
+        updateOfferWizard();
+    }
+}
+
+function updateOfferWizard() {
+    // Update step indicators
+    const steps = document.querySelectorAll('#addOfferModal .wizard-step');
+    steps.forEach((step, index) => {
+        step.classList.remove('active', 'completed');
+        if (index + 1 === currentOfferStep) {
+            step.classList.add('active');
+        } else if (index + 1 < currentOfferStep) {
+            step.classList.add('completed');
+        }
+    });
+
+    // Update step content
+    const stepContents = document.querySelectorAll('#addOfferModal .wizard-step-content');
+    stepContents.forEach((content, index) => {
+        content.classList.remove('active');
+        if (index + 1 === currentOfferStep) {
+            content.classList.add('active');
+        }
+    });
+
+    // Update buttons
+    const prevBtn = document.getElementById('offerPrevBtn');
+    const nextBtn = document.getElementById('offerNextBtn');
+    const publishBtn = document.getElementById('offerPublishBtn');
+
+    if (prevBtn) {
+        prevBtn.style.display = currentOfferStep > 1 ? 'flex' : 'none';
+    }
+
+    if (nextBtn && publishBtn) {
+        if (currentOfferStep === totalOfferSteps) {
+            nextBtn.style.display = 'none';
+            publishBtn.style.display = 'flex';
+        } else {
+            nextBtn.style.display = 'flex';
+            publishBtn.style.display = 'none';
+        }
+    }
+}
+
+// Store published offers
+let publishedOffers = [];
+
+function publishOffer() {
+    // Collect form data
+    const offerType = document.getElementById('offerType')?.value || 'happy-hour';
+    const isActive = document.getElementById('offerActiveToggle')?.checked ?? true;
+    
+    const offerData = {
+        id: Date.now(),
+        nameEn: document.getElementById('offerNameEn')?.value || 'Unnamed Offer',
+        nameAr: document.getElementById('offerNameAr')?.value || '',
+        type: offerType,
+        startTime: document.getElementById('offerStartTime')?.value || '',
+        endTime: document.getElementById('offerEndTime')?.value || '',
+        startDate: document.getElementById('offerStartDate')?.value || '',
+        endDate: document.getElementById('offerEndDate')?.value || '',
+        descEn: document.getElementById('offerDescEn')?.value || '',
+        descAr: document.getElementById('offerDescAr')?.value || '',
+        days: Array.from(document.querySelectorAll('.day-btn.active')).map(btn => btn.textContent),
+        isActive: isActive,
+        products: [...selectedOfferProducts]
+    };
+    
+    // Add to published offers
+    publishedOffers.push(offerData);
+    
+    // Create and display the offer card
+    createOfferCard(offerData);
+    
+    // Show offer cards wrapper and hide empty state
+    document.getElementById('offersEmptyState').style.display = 'none';
+    document.getElementById('offersContentWrapper').style.display = 'flex';
+    
+    // Update offers count
+    document.getElementById('offersCountNum').textContent = publishedOffers.length;
+    
+    console.log('Publishing offer:', offerData);
+    
+    // Store offer name for toast
+    const offerName = offerData.nameEn;
+    
+    // Close modal first
+    closeAddOfferModal();
+    
+    // Use setTimeout to ensure modal closes first
+    setTimeout(() => {
+        // Switch to offers tab
+        switchToOffersTab();
+        
+        // Show success toast
+        showToast('success', 'Offer Published!', `"${offerName}" has been created successfully.`);
+    }, 100);
+}
+
+// Show toast notification
+function showToast(type, title, message) {
+    const toast = document.getElementById('successToast');
+    const toastTitle = toast.querySelector('.toast-title');
+    const toastMessage = document.getElementById('toastMessage');
+    
+    // Update content
+    toastTitle.textContent = title;
+    toastMessage.textContent = message;
+    
+    // Update type class
+    toast.className = 'toast ' + type;
+    
+    // Show toast
+    toast.classList.add('show');
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+        hideToast();
+    }, 3000);
+}
+
+function hideToast() {
+    const toast = document.getElementById('successToast');
+    toast.classList.remove('show');
+}
+
+// Switch to offers tab
+function switchToOffersTab() {
+    // Remove active from all tabs
+    document.querySelectorAll('.menu-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.menu-tab-content').forEach(content => content.classList.remove('active'));
+    
+    // Activate offers tab
+    const offersTab = document.querySelector('.menu-tab[data-tab="offers"]');
+    if (offersTab) offersTab.classList.add('active');
+    
+    const offersContent = document.getElementById('offers-content');
+    if (offersContent) offersContent.classList.add('active');
+}
+
+function createOfferCard(offer) {
+    const grid = document.getElementById('offersCardsGrid');
+    
+    // Get type display info
+    const typeInfo = {
+        'happy-hour': { label: 'Happy Hour', icon: 'fa-clock' },
+        'day-deal': { label: 'Day Deal', icon: 'fa-calendar-day' },
+        'time-range': { label: 'Time Range', icon: 'fa-hourglass-half' },
+        'fixed-price': { label: 'Fixed Price', icon: 'fa-tag' }
+    };
+    
+    const type = typeInfo[offer.type] || typeInfo['happy-hour'];
+    
+    // Format time and date for display
+    const formattedStartTime = formatTime12Hour(offer.startTime);
+    const formattedEndTime = formatTime12Hour(offer.endTime);
+    const formattedStartDate = formatDateNice(offer.startDate);
+    const formattedEndDate = formatDateNice(offer.endDate);
+    
+    // Build schedule info based on type
+    let scheduleHtml = '';
+    if (offer.type === 'happy-hour') {
+        scheduleHtml = `
+            <div class="offer-card-row">
+                <i class="fas fa-calendar-week"></i>
+                <span>${offer.days.length > 0 ? offer.days.join(', ') : 'All Days'}</span>
+            </div>
+            <div class="offer-card-row">
+                <i class="far fa-clock"></i>
+                <span>${formattedStartTime} - ${formattedEndTime}</span>
+            </div>
+        `;
+    } else if (offer.type === 'day-deal') {
+        scheduleHtml = `
+            <div class="offer-card-row">
+                <i class="fas fa-calendar-week"></i>
+                <span>${offer.days.length > 0 ? offer.days.join(', ') : 'All Days'}</span>
+            </div>
+        `;
+    } else if (offer.type === 'time-range') {
+        scheduleHtml = `
+            <div class="offer-card-row">
+                <i class="far fa-clock"></i>
+                <span>${formattedStartTime} - ${formattedEndTime}</span>
+            </div>
+            <div class="offer-card-row">
+                <i class="fas fa-calendar-alt"></i>
+                <span>${formattedStartDate} to ${formattedEndDate}</span>
+            </div>
+        `;
+    } else if (offer.type === 'fixed-price') {
+        scheduleHtml = `
+            <div class="offer-card-row">
+                <i class="fas fa-infinity"></i>
+                <span>Always Active</span>
+            </div>
+        `;
+    }
+    
+    const cardHtml = `
+        <div class="offer-card" data-offer-id="${offer.id}">
+            <div class="offer-card-header">
+                <div class="offer-card-names">
+                    <span class="offer-card-name-en">${offer.nameEn}</span>
+                    ${offer.nameAr ? `<span class="offer-card-name-ar">${offer.nameAr}</span>` : ''}
+                </div>
+                <span class="offer-card-badge ${offer.isActive ? 'active' : 'inactive'}">
+                    ${offer.isActive ? 'Active' : 'Inactive'}
+                </span>
+            </div>
+            <div class="offer-card-body">
+                <div class="offer-card-info">
+                    <div class="offer-card-row">
+                        <i class="fas ${type.icon}"></i>
+                        <span class="offer-card-type-badge">
+                            <i class="fas ${type.icon}"></i>
+                            ${type.label}
+                        </span>
+                    </div>
+                    ${scheduleHtml}
+                    <div class="offer-card-row">
+                        <i class="fas fa-box"></i>
+                        <span>${offer.products.length} product${offer.products.length !== 1 ? 's' : ''}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="offer-card-footer">
+                <button class="offer-card-btn edit" onclick="editOffer(${offer.id})" title="Edit">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="offer-card-btn delete" onclick="deleteOffer(${offer.id})" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    grid.insertAdjacentHTML('beforeend', cardHtml);
+}
+
+function editOffer(offerId) {
+    const offer = publishedOffers.find(o => o.id === offerId);
+    if (!offer) return;
+    
+    // TODO: Implement edit functionality
+    console.log('Edit offer:', offer);
+    alert('Edit functionality coming soon!');
+}
+
+function deleteOffer(offerId) {
+    if (!confirm('Are you sure you want to delete this offer?')) return;
+    
+    // Remove from array
+    publishedOffers = publishedOffers.filter(o => o.id !== offerId);
+    
+    // Remove card from DOM
+    const card = document.querySelector(`.offer-card[data-offer-id="${offerId}"]`);
+    if (card) {
+        card.remove();
+    }
+    
+    // Show empty state if no offers left
+    if (publishedOffers.length === 0) {
+        document.getElementById('offersEmptyState').style.display = 'flex';
+        document.getElementById('offersContentWrapper').style.display = 'none';
+    } else {
+        // Update offers count
+        document.getElementById('offersCountNum').textContent = publishedOffers.length;
+    }
+}
+
+function resetOfferForm() {
+    currentOfferStep = 1;
+    
+    // Reset form fields
+    const inputs = document.querySelectorAll('#addOfferModal input, #addOfferModal textarea, #addOfferModal select');
+    inputs.forEach(input => {
+        if (input.type === 'checkbox' || input.type === 'radio') {
+            input.checked = false;
+        } else if (input.id === 'offerType') {
+            input.value = 'happy-hour';
+        } else {
+            input.value = '';
+        }
+    });
+
+    // Reset days to all active
+    const dayBtns = document.querySelectorAll('.day-btn');
+    dayBtns.forEach(btn => btn.classList.add('active'));
+
+    // Reset offer type to happy-hour
+    const offerTypeBtns = document.querySelectorAll('.offer-type-btn');
+    offerTypeBtns.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-type') === 'happy-hour') {
+            btn.classList.add('active');
+        }
+    });
+
+    // Reset offer type details
+    updateOfferTypeDetails('happy-hour');
+
+    // Reset product selection
+    selectedOfferProducts = [];
+    const categorySelect = document.getElementById('offerCategorySelect');
+    if (categorySelect) categorySelect.value = '';
+    const productsContainer = document.getElementById('productsListContainer');
+    if (productsContainer) productsContainer.style.display = 'none';
+    const summaryContainer = document.getElementById('selectedProductsSummary');
+    if (summaryContainer) summaryContainer.style.display = 'none';
+
+    updateOfferWizard();
+}
+
+// Day buttons toggle
+document.addEventListener('DOMContentLoaded', function() {
+    const dayBtns = document.querySelectorAll('.day-btn');
+    dayBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            this.classList.toggle('active');
+        });
+    });
+});
+
+// Offer Type Data
+const offerTypeData = {
+    'happy-hour': {
+        title: 'Happy Hour Settings',
+        desc: 'Set specific hours when customers get special discounts on selected items',
+        icon: 'fas fa-clock',
+        infoTitle: 'How Happy Hour Works',
+        infoDesc: 'Customers will see discounted prices only during the time range you specify. Perfect for boosting sales during slow hours.'
+    },
+    'day-deal': {
+        title: 'Day Deal Settings',
+        desc: 'Create special offers that are available on specific days of the week',
+        icon: 'fas fa-calendar-day',
+        infoTitle: 'How Day Deal Works',
+        infoDesc: 'Set discounts that apply automatically on selected days. Great for weekly specials like "Taco Tuesday" or "Wing Wednesday".'
+    },
+    'time-range': {
+        title: 'Time Range Settings',
+        desc: 'Offer discounts during a custom time period across multiple days',
+        icon: 'fas fa-hourglass-half',
+        infoTitle: 'How Time Range Works',
+        infoDesc: 'Define a flexible time window for your offer. Ideal for lunch specials, dinner promotions, or late-night deals.'
+    },
+    'fixed-price': {
+        title: 'Fixed Price Settings',
+        desc: 'Set a special fixed price for selected items regardless of regular pricing',
+        icon: 'fas fa-tag',
+        infoTitle: 'How Fixed Price Works',
+        infoDesc: 'Override regular prices with a fixed amount. Perfect for combo deals, set menus, or promotional pricing.'
+    }
+};
+
+// Update Offer Type Details
+function updateOfferTypeDetails(type) {
+    const data = offerTypeData[type];
+    if (!data) return;
+    
+    const titleEl = document.getElementById('offerTypeTitle');
+    const descEl = document.getElementById('offerTypeDesc');
+    const iconEl = document.getElementById('offerTypeIcon');
+    const infoTitleEl = document.getElementById('offerTypeInfoTitle');
+    const infoDescEl = document.getElementById('offerTypeInfoDesc');
+    const timeFieldsRow = document.getElementById('timeFieldsRow');
+    const dateFieldsRow = document.getElementById('dateFieldsRow');
+    const daysFieldRow = document.getElementById('daysFieldRow');
+    const offerTypeDetailsSection = document.getElementById('offerTypeDetails');
+    const fixedPriceInfoCard = document.getElementById('fixedPriceInfoCard');
+    
+    // Update details section content
+    if (titleEl) titleEl.textContent = data.title;
+    if (descEl) descEl.textContent = data.desc;
+    if (iconEl) iconEl.className = data.icon;
+    if (infoTitleEl) infoTitleEl.textContent = data.infoTitle;
+    if (infoDescEl) infoDescEl.textContent = data.infoDesc;
+    
+    // Always show the details section with settings header
+    if (offerTypeDetailsSection) offerTypeDetailsSection.style.display = 'block';
+    
+    // Toggle field visibility based on offer type
+    if (type === 'day-deal') {
+        // Day Deal: show only days and descriptions
+        if (timeFieldsRow) timeFieldsRow.style.display = 'none';
+        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
+        if (daysFieldRow) daysFieldRow.style.display = 'block';
+        if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+    } else if (type === 'time-range') {
+        // Time Range: show time fields, date fields, descriptions (no days)
+        if (timeFieldsRow) timeFieldsRow.style.display = 'grid';
+        if (dateFieldsRow) dateFieldsRow.style.display = 'grid';
+        if (daysFieldRow) daysFieldRow.style.display = 'none';
+        if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+    } else if (type === 'fixed-price') {
+        // Fixed Price: show only info card and descriptions
+        if (timeFieldsRow) timeFieldsRow.style.display = 'none';
+        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
+        if (daysFieldRow) daysFieldRow.style.display = 'none';
+        if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'flex';
+    } else {
+        // Happy Hour: show days, time fields, descriptions
+        if (timeFieldsRow) timeFieldsRow.style.display = 'grid';
+        if (dateFieldsRow) dateFieldsRow.style.display = 'none';
+        if (daysFieldRow) daysFieldRow.style.display = 'block';
+        if (fixedPriceInfoCard) fixedPriceInfoCard.style.display = 'none';
+    }
+}
+
+// Offer Type buttons selection
+document.addEventListener('DOMContentLoaded', function() {
+    const offerTypeBtns = document.querySelectorAll('.offer-type-btn');
+    const offerTypeInput = document.getElementById('offerType');
+    
+    offerTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Remove active from all
+            offerTypeBtns.forEach(b => b.classList.remove('active'));
+            // Add active to clicked
+            this.classList.add('active');
+            
+            const selectedType = this.getAttribute('data-type');
+            
+            // Update hidden input
+            if (offerTypeInput) {
+                offerTypeInput.value = selectedType;
+            }
+            
+            // Update offer type details section
+            updateOfferTypeDetails(selectedType);
+        });
+    });
+});
+
+// Close modal on overlay click
+document.addEventListener('DOMContentLoaded', function() {
+    const modalOverlays = document.querySelectorAll('.modal-overlay');
+    modalOverlays.forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        });
+    });
+});
+
+// ==================== Product Selection for Offers ====================
+
+// Sample products data by category
+const productsByCategory = {
+    'burgers': [
+        { id: 1, name: 'Classic Burger', price: 8.99 },
+        { id: 2, name: 'Cheese Burger', price: 9.99 },
+        { id: 3, name: 'Double Burger', price: 12.99 },
+        { id: 4, name: 'Bacon Burger', price: 11.99 },
+        { id: 5, name: 'Veggie Burger', price: 9.49 }
+    ],
+    'pizza': [
+        { id: 6, name: 'Margherita Pizza', price: 12.99 },
+        { id: 7, name: 'Pepperoni Pizza', price: 14.99 },
+        { id: 8, name: 'BBQ Chicken Pizza', price: 15.99 },
+        { id: 9, name: 'Veggie Supreme', price: 13.99 }
+    ],
+    'drinks': [
+        { id: 10, name: 'Coca Cola', price: 2.49 },
+        { id: 11, name: 'Fresh Orange Juice', price: 3.99 },
+        { id: 12, name: 'Iced Coffee', price: 4.49 },
+        { id: 13, name: 'Lemonade', price: 2.99 }
+    ],
+    'desserts': [
+        { id: 14, name: 'Chocolate Cake', price: 5.99 },
+        { id: 15, name: 'Ice Cream Sundae', price: 4.99 },
+        { id: 16, name: 'Cheesecake', price: 6.49 },
+        { id: 17, name: 'Brownie', price: 3.99 }
+    ],
+    'sides': [
+        { id: 18, name: 'French Fries', price: 3.49 },
+        { id: 19, name: 'Onion Rings', price: 4.49 },
+        { id: 20, name: 'Coleslaw', price: 2.49 },
+        { id: 21, name: 'Mozzarella Sticks', price: 5.99 }
+    ]
+};
+
+// Selected products for the offer
+let selectedOfferProducts = [];
+let currentProductForPopup = null;
+
+// Initialize product selection
+document.addEventListener('DOMContentLoaded', function() {
+    const categorySelect = document.getElementById('offerCategorySelect');
+    
+    if (categorySelect) {
+        categorySelect.addEventListener('change', function() {
+            const category = this.value;
+            loadProductsForCategory(category);
+        });
+    }
+    
+    // Status toggle handler
+    const statusToggle = document.getElementById('offerActiveToggle');
+    if (statusToggle) {
+        statusToggle.addEventListener('change', function() {
+            const statusText = document.getElementById('toggleStatusText');
+            if (statusText) {
+                statusText.textContent = this.checked ? 'Active' : 'Inactive';
+            }
+        });
+    }
+});
+
+// Load products for selected category
+function loadProductsForCategory(category) {
+    const container = document.getElementById('productsListContainer');
+    const checkboxList = document.getElementById('productsCheckboxList');
+    
+    if (!category) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    const products = productsByCategory[category] || [];
+    
+    checkboxList.innerHTML = products.map(product => `
+        <label class="product-checkbox-item">
+            <input type="checkbox" 
+                   data-id="${product.id}" 
+                   data-name="${product.name}" 
+                   data-price="${product.price}"
+                   onchange="handleProductCheckbox(this)">
+            <div class="product-checkbox-info">
+                <span class="product-checkbox-name">${product.name}</span>
+                <span class="product-checkbox-price">$${product.price.toFixed(2)}</span>
+            </div>
+        </label>
+    `).join('');
+    
+    container.style.display = 'block';
+    
+    // Update checkboxes based on already selected products
+    updateProductCheckboxes();
+}
+
+// Handle product checkbox change
+function handleProductCheckbox(checkbox) {
+    const productId = parseInt(checkbox.dataset.id);
+    const productName = checkbox.dataset.name;
+    const productPrice = parseFloat(checkbox.dataset.price);
+    
+    if (checkbox.checked) {
+        // Open popup to set quantity and offer price
+        currentProductForPopup = {
+            id: productId,
+            name: productName,
+            basePrice: productPrice,
+            checkbox: checkbox
+        };
+        openProductPopup(productName, productPrice);
+    } else {
+        // Remove from selected products
+        removeSelectedProduct(productId);
+    }
+}
+
+// Open product price popup
+function openProductPopup(name, price) {
+    const popup = document.getElementById('productPricePopup');
+    const overlay = document.getElementById('popupOverlay');
+    
+    document.getElementById('popupProductName').textContent = name;
+    document.getElementById('popupBasePrice').textContent = `Base Price: $${price.toFixed(2)}`;
+    document.getElementById('popupQuantity').value = '1';
+    document.getElementById('popupOfferPrice').value = '';
+    
+    popup.classList.add('active');
+    overlay.classList.add('active');
+}
+
+// Close product price popup
+function closeProductPopup() {
+    const popup = document.getElementById('productPricePopup');
+    const overlay = document.getElementById('popupOverlay');
+    
+    popup.classList.remove('active');
+    overlay.classList.remove('active');
+    
+    // Uncheck the checkbox if cancelled
+    if (currentProductForPopup && currentProductForPopup.checkbox) {
+        const existingProduct = selectedOfferProducts.find(p => p.id === currentProductForPopup.id);
+        if (!existingProduct) {
+            currentProductForPopup.checkbox.checked = false;
+        }
+    }
+    
+    currentProductForPopup = null;
+}
+
+// Confirm product selection with price
+function confirmProductSelection() {
+    if (!currentProductForPopup) return;
+    
+    const quantity = parseInt(document.getElementById('popupQuantity').value) || 1;
+    const offerPrice = parseFloat(document.getElementById('popupOfferPrice').value) || currentProductForPopup.basePrice;
+    
+    // Add or update the product
+    const existingIndex = selectedOfferProducts.findIndex(p => p.id === currentProductForPopup.id);
+    
+    const productData = {
+        id: currentProductForPopup.id,
+        name: currentProductForPopup.name,
+        basePrice: currentProductForPopup.basePrice,
+        quantity: quantity,
+        offerPrice: offerPrice
+    };
+    
+    if (existingIndex >= 0) {
+        selectedOfferProducts[existingIndex] = productData;
+    } else {
+        selectedOfferProducts.push(productData);
+    }
+    
+    updateSelectedProductsSummary();
+    closeProductPopup();
+}
+
+// Remove selected product
+function removeSelectedProduct(productId) {
+    selectedOfferProducts = selectedOfferProducts.filter(p => p.id !== productId);
+    updateSelectedProductsSummary();
+    updateProductCheckboxes();
+}
+
+// Update checkboxes based on selected products
+function updateProductCheckboxes() {
+    const checkboxes = document.querySelectorAll('#productsCheckboxList input[type="checkbox"]');
+    checkboxes.forEach(checkbox => {
+        const productId = parseInt(checkbox.dataset.id);
+        checkbox.checked = selectedOfferProducts.some(p => p.id === productId);
+    });
+}
+
+// Update selected products summary
+function updateSelectedProductsSummary() {
+    const summaryContainer = document.getElementById('selectedProductsSummary');
+    const summaryList = document.getElementById('selectedProductsList');
+    
+    if (selectedOfferProducts.length === 0) {
+        summaryContainer.style.display = 'none';
+        return;
+    }
+    
+    summaryList.innerHTML = selectedOfferProducts.map(product => `
+        <div class="selected-product-card">
+            <div class="selected-product-info">
+                <div class="selected-product-name">${product.name}</div>
+                <div class="selected-product-details">
+                    <span><i class="fas fa-tag"></i> $${product.offerPrice.toFixed(2)}</span>
+                    <span><i class="fas fa-cube"></i> ${product.quantity} pcs</span>
+                    <span class="base-price-info">Base: $${product.basePrice.toFixed(2)}</span>
+                </div>
+            </div>
+            <div class="selected-product-actions">
+                <button class="selected-product-edit" onclick="editSelectedProduct(${product.id})">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="selected-product-remove" onclick="removeSelectedProduct(${product.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    summaryContainer.style.display = 'block';
+}
+
+// Edit selected product
+function editSelectedProduct(productId) {
+    const product = selectedOfferProducts.find(p => p.id === productId);
+    if (!product) return;
+    
+    // Set current product for popup
+    currentProductForPopup = {
+        id: product.id,
+        name: product.name,
+        basePrice: product.basePrice,
+        checkbox: null,
+        isEditing: true
+    };
+    
+    // Open popup with existing values
+    const popup = document.getElementById('productPricePopup');
+    const overlay = document.getElementById('popupOverlay');
+    
+    document.getElementById('popupProductName').textContent = product.name;
+    document.getElementById('popupBasePrice').textContent = `Base Price: $${product.basePrice.toFixed(2)}`;
+    document.getElementById('popupQuantity').value = product.quantity;
+    document.getElementById('popupOfferPrice').value = product.offerPrice;
+    
+    popup.classList.add('active');
+    overlay.classList.add('active');
+}
+
+// ==================== Preview Functions ====================
+
+function updateOfferPreview() {
+    // Status Badge
+    const isActive = document.getElementById('offerActiveToggle')?.checked ?? true;
+    const statusBadge = document.querySelector('.preview-card .status-badge');
+    if (statusBadge) {
+        statusBadge.textContent = isActive ? 'Active' : 'Inactive';
+        statusBadge.className = 'status-badge ' + (isActive ? 'active' : 'inactive');
+    }
+    
+    // Basic Information
+    const nameEn = document.getElementById('offerNameEn')?.value || '-';
+    const nameAr = document.getElementById('offerNameAr')?.value || '-';
+    const offerType = document.getElementById('offerType')?.value || 'happy-hour';
+    const descEn = document.getElementById('offerDescEn')?.value || '-';
+    
+    document.getElementById('previewNameEn').textContent = nameEn || '-';
+    document.getElementById('previewNameAr').textContent = nameAr || '-';
+    document.getElementById('previewDescEn').textContent = descEn || '-';
+    
+    // Offer type display name
+    const typeNames = {
+        'happy-hour': 'Happy Hour',
+        'day-deal': 'Day Deal',
+        'time-range': 'Time Range',
+        'fixed-price': 'Fixed Price'
+    };
+    document.getElementById('previewOfferType').textContent = typeNames[offerType] || offerType;
+    
+    // Schedule section visibility
+    const scheduleSection = document.getElementById('previewScheduleSection');
+    const previewDaysItem = document.getElementById('previewDaysItem');
+    const previewTimeItem = document.getElementById('previewTimeItem');
+    const previewDateItem = document.getElementById('previewDateItem');
+    const previewTimeContainer = document.getElementById('previewTimeContainer');
+    
+    let activeDaysCount = 0;
+    
+    if (offerType === 'fixed-price') {
+        scheduleSection.style.display = 'none';
+    } else {
+        scheduleSection.style.display = 'block';
+        
+        // Days as tags
+        if (offerType === 'day-deal' || offerType === 'happy-hour') {
+            previewDaysItem.style.display = 'flex';
+            const daysTags = document.getElementById('previewDaysTags');
+            const activeDays = [];
+            document.querySelectorAll('.day-btn.active').forEach(btn => {
+                activeDays.push(btn.textContent);
+            });
+            activeDaysCount = activeDays.length;
+            
+            if (activeDays.length > 0) {
+                daysTags.innerHTML = activeDays.map(day => `<span class="preview-tag">${day}</span>`).join('');
+            } else {
+                daysTags.innerHTML = '<span class="preview-tag">None selected</span>';
+            }
+        } else {
+            previewDaysItem.style.display = 'none';
+        }
+        
+        // Time
+        if (offerType === 'happy-hour' || offerType === 'time-range') {
+            previewTimeContainer.style.display = 'grid';
+            previewTimeItem.style.display = 'flex';
+            const startTime = document.getElementById('offerStartTime')?.value || '';
+            const endTime = document.getElementById('offerEndTime')?.value || '';
+            const formattedStart = formatTime12Hour(startTime);
+            const formattedEnd = formatTime12Hour(endTime);
+            document.getElementById('previewTime').textContent = `${formattedStart} - ${formattedEnd}`;
+        } else {
+            previewTimeContainer.style.display = 'none';
+            previewTimeItem.style.display = 'none';
+        }
+        
+        // Date Range
+        if (offerType === 'time-range') {
+            previewDateItem.style.display = 'flex';
+            const startDate = document.getElementById('offerStartDate')?.value || '';
+            const endDate = document.getElementById('offerEndDate')?.value || '';
+            const formattedStartDate = formatDateNice(startDate);
+            const formattedEndDate = formatDateNice(endDate);
+            document.getElementById('previewDateRange').textContent = `${formattedStartDate} to ${formattedEndDate}`;
+        } else {
+            previewDateItem.style.display = 'none';
+        }
+    }
+    
+    // Products
+    const productsList = document.getElementById('previewProductsList');
+    let totalSavings = 0;
+    
+    if (selectedOfferProducts.length === 0) {
+        productsList.innerHTML = '<p class="no-products-msg">No products selected</p>';
+    } else {
+        productsList.innerHTML = selectedOfferProducts.map(product => {
+            const savings = (product.basePrice - product.offerPrice) * product.quantity;
+            totalSavings += savings;
+            return `
+                <div class="preview-product-item">
+                    <div class="preview-product-info">
+                        <span class="preview-product-name">${product.name}</span>
+                        <span class="preview-product-meta">Qty: ${product.quantity}</span>
+                    </div>
+                    <div class="preview-product-details">
+                        <span class="preview-product-base">$${product.basePrice.toFixed(2)}</span>
+                        <span class="preview-product-price">$${product.offerPrice.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Update stats
+    document.getElementById('statProductCount').textContent = selectedOfferProducts.length;
+    document.getElementById('statTotalSavings').textContent = `$${totalSavings.toFixed(0)}`;
+    document.getElementById('statDaysCount').textContent = activeDaysCount;
+}
+
+// Format time from 24-hour (HH:mm) to 12-hour (hh:mm AM/PM)
+function formatTime12Hour(timeStr) {
+    if (!timeStr) return '-';
+    
+    const [hours, minutes] = timeStr.split(':');
+    const h = parseInt(hours, 10);
+    const m = minutes;
+    
+    if (isNaN(h)) return '-';
+    
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const hour12 = h % 12 || 12;
+    
+    return `${hour12}:${m} ${ampm}`;
+}
+
+// Format date from YYYY-MM-DD to readable format
+function formatDateNice(dateStr) {
+    if (!dateStr) return '-';
+    
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '-';
+    
+    const options = { year: 'numeric', month: 'short', day: 'numeric' };
+    return date.toLocaleDateString('en-US', options);
+}
