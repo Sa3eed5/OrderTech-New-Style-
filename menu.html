@@ -236,26 +236,28 @@
     <!-- Add Offer Modal -->
     <div class="modal-overlay" id="addOfferModal">
         <div class="modal-container wizard-modal">
-            <button class="modal-close-btn" onclick="closeAddOfferModal()">
+            <button class="modal-close-btn" onclick="closeAddOfferModal()" aria-label="Close modal">
                 <i class="fas fa-times"></i>
             </button>
             
-            <!-- Wizard Steps Header -->
+            <!-- Wizard Steps Header with ARIA -->
             <div class="wizard-header">
-                <div class="wizard-steps">
-                    <div class="wizard-step active" data-step="1">
-                        <span class="step-dot"></span>
+                <nav class="wizard-steps" role="navigation" aria-label="Form progress">
+                    <div class="wizard-step active" data-step="1" aria-current="step">
+                        <span class="step-number">1</span>
                         <span class="step-label">Basic</span>
                     </div>
+                    <div class="wizard-connector"></div>
                     <div class="wizard-step" data-step="2">
-                        <span class="step-dot"></span>
+                        <span class="step-number">2</span>
                         <span class="step-label">Products</span>
                     </div>
+                    <div class="wizard-connector"></div>
                     <div class="wizard-step" data-step="3">
-                        <span class="step-dot"></span>
+                        <span class="step-number">3</span>
                         <span class="step-label">Review & Publish</span>
                     </div>
-                </div>
+                </nav>
             </div>
 
             <!-- Modal Header -->
@@ -268,202 +270,387 @@
             <div class="wizard-content">
                 <!-- Step 1: Basic Information -->
                 <div class="wizard-step-content active" id="offerStep1">
-                    <!-- Basic Information Card -->
-                    <div class="form-card">
+                    
+                    <!-- Error Summary (shown on validation failure) -->
+                    <div class="validation-error-summary" id="validationErrorSummary" role="alert" aria-live="polite" style="display: none;">
+                        <div class="error-summary-header">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span>Please fix the following errors:</span>
+                        </div>
+                        <ul class="error-summary-list" id="errorSummaryList"></ul>
+                    </div>
+
+                    <!-- CARD A: Basic Information -->
+                    <div class="form-card" aria-labelledby="basicInfoTitle">
                         <div class="form-section">
-                            <h3 class="form-section-title">Basic Information</h3>
-                            <p class="form-section-desc">Name and description for your offer</p>
+                            <h3 class="form-section-title" id="basicInfoTitle">Basic Information</h3>
+                            <p class="form-section-desc">Name and type of your offer</p>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Offer Name (English) <span class="required">*</span></label>
-                            <input type="text" class="form-input" placeholder="e.g., Happy Hour Special" id="offerNameEn">
+                            <label class="form-label" for="offerNameEn">Offer Name (English) <span class="required">*</span></label>
+                            <input type="text" class="form-input" placeholder="e.g., Happy Hour Special" id="offerNameEn" dir="ltr" maxlength="80" required aria-describedby="offerNameEnError offerNameEnCount">
+                            <div class="form-field-footer">
+                                <span class="form-error" id="offerNameEnError" role="alert"></span>
+                                <span class="form-char-count" id="offerNameEnCount">0/80</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Offer Name (Arabic)</label>
-                            <input type="text" class="form-input rtl-input" placeholder="مثال: عرض ساعة السعادة" id="offerNameAr" dir="rtl">
+                            <label class="form-label" for="offerNameAr">Offer Name (Arabic)</label>
+                            <input type="text" class="form-input rtl-input" placeholder="مثال: عرض ساعة السعادة" id="offerNameAr" dir="rtl" maxlength="80" aria-describedby="offerNameArError offerNameArCount">
+                            <div class="form-field-footer">
+                                <span class="form-error" id="offerNameArError" role="alert"></span>
+                                <span class="form-char-count" id="offerNameArCount">0/80</span>
+                            </div>
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Offer Type <span class="required">*</span></label>
-                            <div class="offer-type-selector">
-                                <div class="offer-type-btn active" data-type="happy-hour">
-                                    <i class="fas fa-clock"></i>
-                                    <span>Happy Hour</span>
+                            <div class="offer-type-selector" role="radiogroup" aria-required="true" aria-label="Select offer type">
+                                <div class="offer-type-card active" data-type="happy-hour" tabindex="0" role="radio" aria-checked="true">
+                                    <span class="offer-type-tooltip" aria-label="Info" tabindex="-1">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-content">Special discounts during specific hours each day. Perfect for slow periods.</span>
+                                    </span>
+                                    <span class="offer-type-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    <span class="offer-type-label">Happy Hour</span>
                                 </div>
-                                <div class="offer-type-btn" data-type="day-deal">
-                                    <i class="fas fa-calendar-day"></i>
-                                    <span>Day Deal</span>
+                                <div class="offer-type-card" data-type="day-deal" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="offer-type-tooltip" aria-label="Info" tabindex="-1">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-content">Offer runs all day on selected days. Great for themed promotions.</span>
+                                    </span>
+                                    <span class="offer-type-icon">
+                                        <i class="fas fa-calendar-day"></i>
+                                    </span>
+                                    <span class="offer-type-label">Day Deal</span>
                                 </div>
-                                <div class="offer-type-btn" data-type="time-range">
-                                    <i class="fas fa-hourglass-half"></i>
-                                    <span>Time Range</span>
+                                <div class="offer-type-card" data-type="time-range" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="offer-type-tooltip" aria-label="Info" tabindex="-1">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-content">Limited time offer with start and end dates. Ideal for seasonal campaigns.</span>
+                                    </span>
+                                    <span class="offer-type-icon">
+                                        <i class="fas fa-hourglass-half"></i>
+                                    </span>
+                                    <span class="offer-type-label">Time Range</span>
                                 </div>
-                                <div class="offer-type-btn" data-type="fixed-price">
-                                    <i class="fas fa-tag"></i>
-                                    <span>Fixed Price</span>
+                                <div class="offer-type-card" data-type="fixed-price" tabindex="0" role="radio" aria-checked="false">
+                                    <span class="offer-type-tooltip" aria-label="Info" tabindex="-1">
+                                        <i class="fas fa-info-circle"></i>
+                                        <span class="tooltip-content">Set a fixed discounted price for selected items. Always active once published.</span>
+                                    </span>
+                                    <span class="offer-type-icon">
+                                        <i class="fas fa-tag"></i>
+                                    </span>
+                                    <span class="offer-type-label">Fixed Price</span>
                                 </div>
                             </div>
                             <input type="hidden" id="offerType" value="happy-hour">
+                            <span class="form-error" id="offerTypeError" role="alert"></span>
                         </div>
                     </div>
 
-                    <!-- Offer Type Details Section -->
-                    <div class="offer-type-details-section" id="offerTypeDetails">
+                    <!-- CARD B: Offer Settings -->
+                    <div class="form-card" aria-labelledby="offerSettingsTitle">
                         <div class="form-section">
-                            <h3 class="form-section-title" id="offerTypeTitle">Happy Hour Settings</h3>
-                            <p class="form-section-desc" id="offerTypeDesc">Set specific hours when customers get special discounts on selected items</p>
+                            <h3 class="form-section-title" id="offerSettingsTitle">Offer Settings</h3>
+                            <p class="form-section-desc">Schedule, description, and status</p>
                         </div>
-                        
-                        <div class="offer-type-info-card">
-                            <div class="info-card-icon">
-                                <i class="fas fa-clock" id="offerTypeIcon"></i>
-                            </div>
-                            <div class="info-card-content">
-                                <h4 id="offerTypeInfoTitle">How Happy Hour Works</h4>
-                                <p id="offerTypeInfoDesc">Customers will see discounted prices only during the time range you specify. Perfect for boosting sales during slow hours.</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <div class="form-group" id="daysFieldRow">
-                        <label class="form-label">Days of Week</label>
-                        <div class="days-selector">
-                            <button type="button" class="day-btn active" data-day="sun">Sun</button>
-                            <button type="button" class="day-btn active" data-day="mon">Mon</button>
-                            <button type="button" class="day-btn active" data-day="tue">Tue</button>
-                            <button type="button" class="day-btn active" data-day="wed">Wed</button>
-                            <button type="button" class="day-btn active" data-day="thu">Thu</button>
-                            <button type="button" class="day-btn active" data-day="fri">Fri</button>
-                            <button type="button" class="day-btn active" data-day="sat">Sat</button>
+                        <!-- Days of Week with Select All/Clear -->
+                        <div class="form-group" id="daysFieldRow">
+                            <div class="form-label-row">
+                                <label class="form-label">Days of Week</label>
+                                <div class="days-actions">
+                                    <button type="button" class="days-action-btn" id="selectAllDays" onclick="selectAllDaysHandler()">Select all</button>
+                                    <button type="button" class="days-action-btn" id="clearDays" onclick="clearAllDaysHandler()">Clear</button>
+                                </div>
+                            </div>
+                            <div class="days-selector" role="group" aria-label="Select days">
+                                <button type="button" class="day-btn active" data-day="sun" aria-pressed="true" onclick="toggleDayBtn(this)">Sun</button>
+                                <button type="button" class="day-btn active" data-day="mon" aria-pressed="true" onclick="toggleDayBtn(this)">Mon</button>
+                                <button type="button" class="day-btn active" data-day="tue" aria-pressed="true" onclick="toggleDayBtn(this)">Tue</button>
+                                <button type="button" class="day-btn active" data-day="wed" aria-pressed="true" onclick="toggleDayBtn(this)">Wed</button>
+                                <button type="button" class="day-btn active" data-day="thu" aria-pressed="true" onclick="toggleDayBtn(this)">Thu</button>
+                                <button type="button" class="day-btn active" data-day="fri" aria-pressed="true" onclick="toggleDayBtn(this)">Fri</button>
+                                <button type="button" class="day-btn active" data-day="sat" aria-pressed="true" onclick="toggleDayBtn(this)">Sat</button>
+                            </div>
+                            <span class="form-error" id="daysError" role="alert"></span>
                         </div>
-                    </div>
 
-                    <div class="form-row" id="timeFieldsRow">
+                        <div class="form-divider"></div>
+
+                        <!-- Time Range -->
+                        <div class="form-row" id="timeFieldsRow">
+                            <div class="form-group">
+                                <label class="form-label" for="offerStartTime">Start Time</label>
+                                <div class="time-input-wrapper clickable-picker">
+                                    <input type="time" class="form-input time-input" id="offerStartTime" aria-describedby="timeError">
+                                    <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="offerEndTime">End Time</label>
+                                <div class="time-input-wrapper clickable-picker">
+                                    <input type="time" class="form-input time-input" id="offerEndTime" aria-describedby="timeError">
+                                    <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="form-error" id="timeError" role="alert"></span>
+
+                        <!-- Date Range (for Time Range offer type) -->
+                        <div class="form-row" id="dateFieldsRow" style="display: none;">
+                            <div class="form-group">
+                                <label class="form-label" for="offerStartDate">Start Date</label>
+                                <div class="date-input-wrapper clickable-picker">
+                                    <input type="date" class="form-input date-input" id="offerStartDate">
+                                    <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="offerEndDate">End Date</label>
+                                <div class="date-input-wrapper clickable-picker">
+                                    <input type="date" class="form-input date-input" id="offerEndDate">
+                                    <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fixed Price Info Card -->
+                        <div class="fixed-price-info-card" id="fixedPriceInfoCard" style="display: none;">
+                            <i class="fas fa-lightbulb"></i>
+                            <span>Fixed Price offers are always active. Just select products below and set their offer prices.</span>
+                        </div>
+
+                        <div class="form-divider"></div>
+
+                        <!-- Description English -->
                         <div class="form-group">
-                            <label class="form-label">Start Time</label>
-                            <div class="time-input-wrapper clickable-picker">
-                                <input type="time" class="form-input time-input" id="offerStartTime">
-                                <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            <label class="form-label" for="offerDescEn">Description (English)</label>
+                            <textarea class="form-textarea auto-grow" placeholder="Describe the offer..." id="offerDescEn" rows="2" dir="ltr" maxlength="400" aria-describedby="descEnError descEnCount"></textarea>
+                            <div class="form-field-footer">
+                                <span class="form-error" id="descEnError" role="alert"></span>
+                                <span class="form-char-count" id="descEnCount">0/400</span>
                             </div>
                         </div>
+
+                        <!-- Description Arabic -->
                         <div class="form-group">
-                            <label class="form-label">End Time</label>
-                            <div class="time-input-wrapper clickable-picker">
-                                <input type="time" class="form-input time-input" id="offerEndTime">
-                                <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            <label class="form-label" for="offerDescAr">Description (Arabic)</label>
+                            <textarea class="form-textarea rtl-input auto-grow" placeholder="وصف العرض..." id="offerDescAr" rows="2" dir="rtl" maxlength="400" aria-describedby="descArError descArCount"></textarea>
+                            <div class="form-field-footer">
+                                <span class="form-error" id="descArError" role="alert"></span>
+                                <span class="form-char-count" id="descArCount">0/400</span>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="form-row" id="dateFieldsRow" style="display: none;">
+                        <div class="form-divider"></div>
+
+                        <!-- Status Toggle -->
                         <div class="form-group">
-                            <label class="form-label">Start Date</label>
-                            <div class="date-input-wrapper clickable-picker">
-                                <input type="date" class="form-input date-input" id="offerStartDate">
-                                <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            <div class="status-toggle-box">
+                                <div class="status-toggle-info">
+                                    <span class="status-toggle-label">Offer Status</span>
+                                    <span class="status-toggle-desc">Enable or disable this offer</span>
+                                </div>
+                                <div class="status-toggle-control">
+                                    <label class="modern-toggle">
+                                        <input type="checkbox" id="offerActiveToggle" checked>
+                                        <span class="toggle-track">
+                                            <span class="toggle-thumb"></span>
+                                        </span>
+                                        <span class="toggle-label active" id="toggleStatusText">Active</span>
+                                    </label>
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">End Date</label>
-                            <div class="date-input-wrapper clickable-picker">
-                                <input type="date" class="form-input date-input" id="offerEndDate">
-                                <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fixed Price Info Card -->
-                    <div class="fixed-price-info-card" id="fixedPriceInfoCard" style="display: none;">
-                        <i class="fas fa-lightbulb"></i>
-                        <span>Fixed Price offers are always active. Just select products below and set their offer prices.</span>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Description (English)</label>
-                        <textarea class="form-textarea" placeholder="Describe the offer..." id="offerDescEn" rows="3"></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Description (Arabic)</label>
-                        <textarea class="form-textarea rtl-input" placeholder="وصف العرض..." id="offerDescAr" rows="3" dir="rtl"></textarea>
-                    </div>
-
-                    <!-- Status Toggle -->
-                    <div class="form-group status-toggle-group">
-                        <div class="status-toggle-wrapper">
-                            <div class="status-toggle-info">
-                                <span class="status-toggle-label">Offer Status</span>
-                                <span class="status-toggle-desc">Enable or disable this offer</span>
-                            </div>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="offerActiveToggle" checked>
-                                <span class="toggle-slider"></span>
-                                <span class="toggle-status" id="toggleStatusText">Active</span>
-                            </label>
                         </div>
                     </div>
                 </div>
 
                 <!-- Step 2: Select Products -->
                 <div class="wizard-step-content" id="offerStep2">
-                    <div class="form-section">
-                        <h3 class="form-section-title">Select Products for this Offer</h3>
-                        <p class="form-section-desc">First select a category, then choose products to include.</p>
-                    </div>
+                    <div class="products-step-layout">
+                        <!-- Left Panel: Product Selection -->
+                        <div class="products-selection-panel">
+                            <!-- Panel Header -->
+                            <div class="panel-header">
+                                <div class="panel-title-group">
+                                    <h3 class="panel-title">Select Products</h3>
+                                    <p class="panel-subtitle">Choose products to include in this offer</p>
+                                </div>
+                            </div>
 
-                    <!-- Category Selector -->
-                    <div class="form-group">
-                        <label class="form-label">Select Category</label>
-                        <select class="form-input form-select" id="offerCategorySelect">
-                            <option value="">Choose a category...</option>
-                            <option value="burgers">Burgers</option>
-                            <option value="pizza">Pizza</option>
-                            <option value="drinks">Drinks</option>
-                            <option value="desserts">Desserts</option>
-                            <option value="sides">Sides</option>
-                        </select>
-                    </div>
+                            <!-- Category Selector -->
+                            <div class="category-selector-row">
+                                <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                                    <label class="form-label" for="offerCategorySelect">Category</label>
+                                    <select class="form-input form-select" id="offerCategorySelect" aria-describedby="categoryHelper">
+                                        <option value="">All Categories</option>
+                                        <option value="burgers">Burgers</option>
+                                        <option value="pizzas">Pizzas</option>
+                                        <option value="drinks">Drinks</option>
+                                        <option value="desserts">Desserts</option>
+                                        <option value="sides">Sides</option>
+                                    </select>
+                                    <span class="form-helper" id="categoryHelper">Filter products by category</span>
+                                </div>
+                            </div>
 
-                    <!-- Products List (shows after category selection) -->
-                    <div class="products-list-container" id="productsListContainer" style="display: none;">
-                        <label class="form-label">Select Products</label>
-                        <div class="products-checkbox-list" id="productsCheckboxList">
-                            <!-- Products will be loaded here dynamically -->
+                            <!-- Products Toolbar -->
+                            <div class="products-toolbar">
+                                <div class="products-search-box">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" class="products-search-input" id="productsSearchInput" placeholder="Search products..." aria-label="Search products">
+                                </div>
+                                <div class="products-toolbar-actions">
+                                    <label class="filter-checkbox">
+                                        <input type="checkbox" id="inStockFilter">
+                                        <span class="filter-checkbox-label">In Stock Only</span>
+                                    </label>
+                                    <span class="products-counter" id="productsCounter" aria-live="polite">
+                                        <span class="counter-badge" id="selectedCountBadge">0</span> selected
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Bulk Actions -->
+                            <div class="bulk-actions-row">
+                                <button type="button" class="bulk-action-btn" id="selectAllPageBtn" aria-label="Select all visible products">
+                                    <i class="far fa-check-square"></i>
+                                    Select All
+                                </button>
+                                <button type="button" class="bulk-action-btn" id="clearPageBtn" aria-label="Clear selection from visible products">
+                                    <i class="far fa-square"></i>
+                                    Clear Page
+                                </button>
+                            </div>
+
+                            <!-- Products Table/List -->
+                            <div class="products-table-container" id="productsTableContainer">
+                                <!-- Loading State -->
+                                <div class="products-loading-state" id="productsLoadingState" style="display: none;">
+                                    <div class="loading-skeleton"></div>
+                                    <div class="loading-skeleton"></div>
+                                    <div class="loading-skeleton"></div>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div class="products-empty-state" id="productsEmptyState" style="display: none;">
+                                    <i class="fas fa-box-open"></i>
+                                    <p>No products found</p>
+                                    <span>Try adjusting your search or filters</span>
+                                </div>
+
+                                <!-- Products Table -->
+                                <table class="products-table" id="productsTable" role="grid" aria-label="Products list">
+                                    <thead>
+                                        <tr>
+                                            <th class="col-checkbox" scope="col">
+                                                <span class="sr-only">Select</span>
+                                            </th>
+                                            <th class="col-name" scope="col">Product Name</th>
+                                            <th class="col-price" scope="col">Price</th>
+                                            <th class="col-base-price" scope="col">Base Price</th>
+                                            <th class="col-stock" scope="col">Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="productsTableBody">
+                                        <!-- Products rows will be rendered here -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Load More / Pagination -->
+                            <div class="products-pagination" id="productsPagination" style="display: none;">
+                                <button type="button" class="load-more-btn" id="loadMoreBtn">
+                                    <i class="fas fa-plus"></i>
+                                    Load More Products
+                                </button>
+                                <span class="pagination-info" id="paginationInfo">Showing 10 of 25</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Selected Products Summary -->
+                        <div class="selected-products-panel" id="selectedProductsPanel">
+                            <div class="selected-panel-header">
+                                <h4 class="selected-panel-title">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    Selected Products
+                                </h4>
+                                <button type="button" class="panel-toggle-btn" id="toggleSelectedPanel" aria-expanded="true" aria-controls="selectedPanelContent">
+                                    <i class="fas fa-chevron-down"></i>
+                                </button>
+                            </div>
+                            <div class="selected-panel-content" id="selectedPanelContent">
+                                <!-- Empty State -->
+                                <div class="selected-empty-state" id="selectedEmptyState">
+                                    <i class="fas fa-hand-pointer"></i>
+                                    <p>No products selected</p>
+                                    <span>Select products from the list</span>
+                                </div>
+
+                                <!-- Selected Products List -->
+                                <div class="selected-products-list" id="selectedProductsList" style="display: none;">
+                                    <!-- Selected items will be rendered here -->
+                                </div>
+
+                                <!-- Summary Footer -->
+                                <div class="selected-summary-footer" id="selectedSummaryFooter" style="display: none;">
+                                    <div class="summary-line">
+                                        <span class="summary-label">Total Items:</span>
+                                        <span class="summary-value" id="totalItemsCount">0</span>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span class="summary-label">Total Qty:</span>
+                                        <span class="summary-value" id="totalQtyCount">0</span>
+                                    </div>
+                                    <div class="summary-line">
+                                        <span class="summary-label">Offer Value:</span>
+                                        <span class="summary-value" id="totalOfferValue">$0.00</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Selected Products Summary -->
-                    <div class="selected-products-summary" id="selectedProductsSummary" style="display: none;">
-                        <label class="form-label">Selected Products</label>
-                        <div class="selected-products-list" id="selectedProductsList">
-                            <!-- Selected products will appear here -->
-                        </div>
-                    </div>
+                    <!-- ARIA Live Region for Announcements -->
+                    <div class="sr-only" aria-live="polite" aria-atomic="true" id="selectionAnnouncer"></div>
                 </div>
 
                 <!-- Step 3: Review & Publish -->
                 <div class="wizard-step-content" id="offerStep3">
                     <div class="form-section">
                         <h3 class="form-section-title">Review & Publish</h3>
-                        <p class="form-section-desc">Final check before going live</p>
+                        <p class="form-section-desc">Verify all details before your offer goes live</p>
                     </div>
                     
                     <!-- Preview Card -->
-                    <div class="preview-card">
+                    <div class="preview-card" role="region" aria-labelledby="reviewSummaryTitle">
                         <!-- Summary Header -->
                         <div class="summary-header">
                             <div class="summary-title-group">
-                                <h3 class="summary-title">Offer Summary</h3>
-                                <p class="summary-subtitle">Final check before going live</p>
+                                <h3 class="summary-title" id="reviewSummaryTitle">Offer Summary</h3>
+                                <p class="summary-subtitle">Review all details before publishing</p>
                             </div>
-                            <span class="status-badge active">Active</span>
+                            <span class="status-badge" id="previewStatusBadge" aria-live="polite">Active</span>
                         </div>
 
-                        <!-- Basic Information Section -->
-                        <div class="preview-section">
-                            <h4 class="preview-section-title"><i class="fas fa-info-circle"></i> Basic Information</h4>
+                        <!-- Section A: Basic Information -->
+                        <div class="preview-section" role="region" aria-labelledby="basicInfoHeading">
+                            <div class="preview-section-header">
+                                <h4 class="preview-section-title" id="basicInfoHeading">
+                                    <i class="fas fa-info-circle" aria-hidden="true"></i> Basic Information
+                                </h4>
+                                <button type="button" class="edit-section-btn" onclick="goToStep(1)" aria-label="Edit basic information">
+                                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                    <span>Edit</span>
+                                </button>
+                            </div>
                             <div class="preview-grid four-cols">
                                 <div class="preview-item">
                                     <span class="preview-label">Name (English)</span>
@@ -471,61 +658,118 @@
                                 </div>
                                 <div class="preview-item">
                                     <span class="preview-label">Name (Arabic)</span>
-                                    <span class="preview-value" id="previewNameAr">-</span>
+                                    <span class="preview-value" id="previewNameAr" dir="auto">-</span>
                                 </div>
                                 <div class="preview-item">
                                     <span class="preview-label">Offer Type</span>
-                                    <span class="preview-value" id="previewOfferType">-</span>
+                                    <span class="preview-value offer-type-badge" id="previewOfferType">-</span>
                                 </div>
                                 <div class="preview-item">
-                                    <span class="preview-label">Description</span>
-                                    <span class="preview-value" id="previewDescEn">-</span>
+                                    <span class="preview-label">Status</span>
+                                    <span class="preview-value" id="previewStatusText">-</span>
+                                </div>
+                            </div>
+                            <div class="preview-grid two-cols" style="margin-top: 12px;">
+                                <div class="preview-item">
+                                    <span class="preview-label">Description (English)</span>
+                                    <span class="preview-value preview-desc" id="previewDescEn">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Description (Arabic)</span>
+                                    <span class="preview-value preview-desc" id="previewDescAr" dir="auto">-</span>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Schedule Section -->
-                        <div class="preview-section" id="previewScheduleSection">
-                            <h4 class="preview-section-title"><i class="fas fa-calendar-alt"></i> Schedule</h4>
-                            <div class="preview-tags-container" id="previewDaysItem">
-                                <span class="preview-label">Days:</span>
-                                <div class="preview-tags" id="previewDaysTags">
-                                    <!-- Day tags will be inserted here -->
-                                </div>
+                        <!-- Section B: Schedule -->
+                        <div class="preview-section" id="previewScheduleSection" role="region" aria-labelledby="scheduleHeading">
+                            <div class="preview-section-header">
+                                <h4 class="preview-section-title" id="scheduleHeading">
+                                    <i class="fas fa-calendar-alt" aria-hidden="true"></i> Schedule
+                                </h4>
+                                <button type="button" class="edit-section-btn" onclick="goToStep(1)" aria-label="Edit schedule">
+                                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                    <span>Edit</span>
+                                </button>
                             </div>
-                            <div class="preview-grid" id="previewTimeContainer">
-                                <div class="preview-item" id="previewTimeItem">
-                                    <span class="preview-label">Time</span>
-                                    <span class="preview-value" id="previewTime">-</span>
+                            <div class="preview-schedule-content">
+                                <div class="preview-tags-container" id="previewDaysItem">
+                                    <span class="preview-label">Active Days:</span>
+                                    <div class="preview-tags" id="previewDaysTags" role="list" aria-label="Selected days">
+                                        <!-- Day tags will be inserted here -->
+                                    </div>
                                 </div>
-                                <div class="preview-item" id="previewDateItem" style="display: none;">
-                                    <span class="preview-label">Date Range</span>
-                                    <span class="preview-value" id="previewDateRange">-</span>
+                                <div class="preview-grid" id="previewTimeContainer">
+                                    <div class="preview-item" id="previewTimeItem">
+                                        <span class="preview-label"><i class="fas fa-clock" aria-hidden="true"></i> Time Range</span>
+                                        <span class="preview-value preview-time" id="previewTime">-</span>
+                                    </div>
+                                    <div class="preview-item" id="previewDateItem" style="display: none;">
+                                        <span class="preview-label"><i class="fas fa-calendar" aria-hidden="true"></i> Date Range</span>
+                                        <span class="preview-value" id="previewDateRange">-</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Selected Products Section -->
-                        <div class="preview-section">
-                            <h4 class="preview-section-title"><i class="fas fa-box"></i> Selected Products</h4>
-                            <div class="preview-products-list" id="previewProductsList">
-                                <p class="no-products-msg">No products selected</p>
+                        <!-- Section C: Selected Products -->
+                        <div class="preview-section" role="region" aria-labelledby="productsHeading">
+                            <div class="preview-section-header">
+                                <h4 class="preview-section-title" id="productsHeading">
+                                    <i class="fas fa-box" aria-hidden="true"></i> Selected Products
+                                </h4>
+                                <button type="button" class="edit-section-btn" onclick="goToStep(2)" aria-label="Edit selected products">
+                                    <i class="fas fa-pencil-alt" aria-hidden="true"></i>
+                                    <span>Edit</span>
+                                </button>
+                            </div>
+                            <div class="preview-products-table-container">
+                                <table class="preview-products-table" id="previewProductsTable" aria-label="Selected products summary">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Product</th>
+                                            <th scope="col" class="text-center">Qty</th>
+                                            <th scope="col" class="text-right">Original</th>
+                                            <th scope="col" class="text-right">Offer Price</th>
+                                            <th scope="col" class="text-right">Savings</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="previewProductsList">
+                                        <!-- Products will be inserted here -->
+                                    </tbody>
+                                </table>
+                                <div class="no-products-message" id="noProductsMsg">
+                                    <i class="fas fa-box-open" aria-hidden="true"></i>
+                                    <p>No products selected</p>
+                                    <button type="button" class="add-products-link" onclick="goToStep(2)">
+                                        <i class="fas fa-plus" aria-hidden="true"></i> Add Products
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Summary Stats Footer -->
-                        <div class="summary-stats">
-                            <div class="stat-box">
-                                <span class="stat-number" id="statProductCount">0</span>
-                                <span class="stat-label">Products</span>
+                        <div class="summary-stats" role="region" aria-label="Offer statistics">
+                            <div class="stat-box" role="group" aria-label="Products count">
+                                <i class="fas fa-shopping-basket stat-icon" aria-hidden="true"></i>
+                                <div class="stat-content">
+                                    <span class="stat-number" id="statProductCount">0</span>
+                                    <span class="stat-label">Products</span>
+                                </div>
                             </div>
-                            <div class="stat-box">
-                                <span class="stat-number" id="statTotalSavings">$0</span>
-                                <span class="stat-label">Total Savings</span>
+                            <div class="stat-box highlight" role="group" aria-label="Total savings">
+                                <i class="fas fa-piggy-bank stat-icon" aria-hidden="true"></i>
+                                <div class="stat-content">
+                                    <span class="stat-number" id="statTotalSavings">$0</span>
+                                    <span class="stat-label">Total Savings</span>
+                                </div>
                             </div>
-                            <div class="stat-box">
-                                <span class="stat-number" id="statDaysCount">0</span>
-                                <span class="stat-label">Days</span>
+                            <div class="stat-box" role="group" aria-label="Active days">
+                                <i class="fas fa-calendar-check stat-icon" aria-hidden="true"></i>
+                                <div class="stat-content">
+                                    <span class="stat-number" id="statDaysCount">0</span>
+                                    <span class="stat-label">Active Days</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -543,8 +787,8 @@
                     Next
                     <i class="fas fa-arrow-right"></i>
                 </button>
-                <button class="wizard-btn success" id="offerPublishBtn" onclick="publishOffer()" style="display: none;">
-                    <i class="fas fa-check"></i>
+                <button class="wizard-btn success" id="offerPublishBtn" onclick="openConfirmModal()" style="display: none;">
+                    <i class="fas fa-rocket"></i>
                     Publish Offer
                 </button>
             </div>
@@ -577,6 +821,67 @@
         <div class="popup-actions">
             <button class="popup-btn cancel" onclick="closeProductPopup()">Cancel</button>
             <button class="popup-btn confirm" onclick="confirmProductSelection()">Confirm</button>
+        </div>
+    </div>
+
+    <!-- Publish Confirmation Modal -->
+    <div class="confirm-modal-overlay" id="confirmModalOverlay" onclick="closeConfirmModal()" role="presentation"></div>
+    <div class="confirm-modal" id="confirmPublishModal" role="dialog" aria-labelledby="confirmModalTitle" aria-modal="true">
+        <div class="confirm-modal-header">
+            <div class="confirm-modal-icon">
+                <i class="fas fa-rocket" aria-hidden="true"></i>
+            </div>
+            <h3 class="confirm-modal-title" id="confirmModalTitle">Ready to Publish?</h3>
+            <p class="confirm-modal-subtitle">Please confirm the following before publishing your offer</p>
+        </div>
+        
+        <div class="confirm-checklist" role="list" aria-label="Publish confirmation checklist">
+            <label class="checklist-item" role="listitem">
+                <input type="checkbox" id="checkBasicInfo" onchange="updatePublishButton()">
+                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
+                <span class="checklist-text">I have verified all basic information is correct</span>
+            </label>
+            <label class="checklist-item" role="listitem">
+                <input type="checkbox" id="checkSchedule" onchange="updatePublishButton()">
+                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
+                <span class="checklist-text">I have confirmed the schedule and active days</span>
+            </label>
+            <label class="checklist-item" role="listitem">
+                <input type="checkbox" id="checkProducts" onchange="updatePublishButton()">
+                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
+                <span class="checklist-text">I have reviewed all selected products and prices</span>
+            </label>
+            <label class="checklist-item" role="listitem">
+                <input type="checkbox" id="checkReady" onchange="updatePublishButton()">
+                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
+                <span class="checklist-text">I understand this offer will be visible to customers</span>
+            </label>
+        </div>
+
+        <div class="confirm-modal-summary">
+            <div class="confirm-summary-item">
+                <span class="confirm-summary-label">Offer Name</span>
+                <span class="confirm-summary-value" id="confirmOfferName">-</span>
+            </div>
+            <div class="confirm-summary-item">
+                <span class="confirm-summary-label">Status</span>
+                <span class="confirm-summary-value" id="confirmOfferStatus">-</span>
+            </div>
+            <div class="confirm-summary-item">
+                <span class="confirm-summary-label">Products</span>
+                <span class="confirm-summary-value" id="confirmProductCount">0 items</span>
+            </div>
+        </div>
+
+        <div class="confirm-modal-actions">
+            <button type="button" class="confirm-btn secondary" onclick="closeConfirmModal()">
+                <i class="fas fa-arrow-left" aria-hidden="true"></i>
+                Go Back
+            </button>
+            <button type="button" class="confirm-btn primary" id="confirmPublishBtn" onclick="confirmAndPublish()" disabled>
+                <i class="fas fa-rocket" aria-hidden="true"></i>
+                Publish Now
+            </button>
         </div>
     </div>
 
