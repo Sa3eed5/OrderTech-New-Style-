@@ -95,17 +95,508 @@
                     </div>
                     <div class="header-text">
                         <h1>Menu</h1>
-                        <p>Welcome to Menu page</p>
+                        <p>Manage your restaurant menu items and categories</p>
                     </div>
                 </div>
             </div>
-            <div style="padding: 20px;"><div style="background: white; padding: 40px; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); text-align: center;">
-                <i class="fas fa-utensils" style="font-size: 64px; color: #6366f1; margin-bottom: 20px;"></i>
-                <h2 style="margin: 0 0 10px 0; color: #1a1a1a;">Welcome to Menu Page</h2>
-                <p style="color: #6b7280; margin: 0;">Menu management features coming soon</p>
-            </div></div>
+            <!-- Menu Toolbar -->
+            <div class="menu-toolbar">
+                <div class="menu-tabs">
+                    <button class="menu-tab active" data-tab="menu-items">
+                        <span>Menu Items</span>
+                    </button>
+                    <button class="menu-tab" data-tab="addons">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Add-on Groups</span>
+                    </button>
+                    <button class="menu-tab" data-tab="offers">
+                        <i class="fas fa-percent"></i>
+                        <span>Offers</span>
+                    </button>
+                    <button class="menu-tab" data-tab="combos">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Combos</span>
+                    </button>
+                </div>
+                <div class="menu-actions">
+                    <button class="menu-action-btn outline" onclick="openAddCategoryModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Category</span>
+                    </button>
+                    <button class="menu-action-btn outline" onclick="openAddProductModal()">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Product</span>
+                    </button>
+                    <button class="menu-action-btn outline dropdown-trigger">
+                        <i class="fas fa-download"></i>
+                        <span>Import / Export</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Menu Content Area -->
+            <div class="menu-content-area">
+                <!-- Search and Filter Bar -->
+                <div class="menu-filter-bar">
+                    <div class="menu-search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" placeholder="Search categories or products..." id="menuSearchInput">
+                    </div>
+                    <div class="menu-filter-dropdown">
+                        <button class="filter-dropdown-btn" id="filterDropdownBtn">
+                            <i class="fas fa-filter"></i>
+                            <span id="filterLabel">Active</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="filter-dropdown-menu" id="filterDropdownMenu">
+                            <div class="filter-option active" data-value="active">Active</div>
+                            <div class="filter-option" data-value="inactive">Inactive</div>
+                            <div class="filter-option" data-value="all">All</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab Contents -->
+                <div class="menu-tab-content active" id="menu-items-content">
+                    <!-- Empty State -->
+                    <div class="menu-empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <h2>No Items or Categories Yet</h2>
+                        <p>Start building your menu by adding your first category</p>
+                        <button class="add-first-category-btn" onclick="openAddCategoryModal()">
+                            <i class="fas fa-plus"></i>
+                            Add your First Category
+                        </button>
+                    </div>
+                </div>
+
+                <div class="menu-tab-content" id="addons-content">
+                    <div class="menu-empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h2>No Add-on Groups Yet</h2>
+                        <p>Create add-on groups to customize your products</p>
+                        <button class="add-first-category-btn">
+                            <i class="fas fa-plus"></i>
+                            Add your First Add-on Group
+                        </button>
+                    </div>
+                </div>
+
+                <div class="menu-tab-content" id="offers-content">
+                    <!-- Empty State -->
+                    <div class="menu-empty-state" id="offersEmptyState">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-percent"></i>
+                        </div>
+                        <h2>No Offers Yet</h2>
+                        <p>Create offers to attract more customers</p>
+                        <button class="add-first-category-btn" onclick="openAddOfferModal()">
+                            <i class="fas fa-plus"></i>
+                            Add your First Offer
+                        </button>
+                    </div>
+                    <!-- Offers Content When Has Offers -->
+                    <div class="offers-content-wrapper" id="offersContentWrapper" style="display: none;">
+                        <div class="offers-header">
+                            <span class="offers-count"><span id="offersCountNum">0</span> Offers</span>
+                            <button class="add-offer-btn" onclick="openAddOfferModal()">
+                                <i class="fas fa-plus"></i>
+                                Add Offer
+                            </button>
+                        </div>
+                        <!-- Offers Cards Grid -->
+                        <div class="offers-cards-grid" id="offersCardsGrid">
+                            <!-- Offer cards will be inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="menu-tab-content" id="combos-content">
+                    <div class="menu-empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h2>No Combos Yet</h2>
+                        <p>Create combo deals to increase sales</p>
+                        <button class="add-first-category-btn">
+                            <i class="fas fa-plus"></i>
+                            Add your First Combo
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
+
+    <!-- Add Offer Modal -->
+    <div class="modal-overlay" id="addOfferModal">
+        <div class="modal-container wizard-modal">
+            <button class="modal-close-btn" onclick="closeAddOfferModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <!-- Wizard Steps Header -->
+            <div class="wizard-header">
+                <div class="wizard-steps">
+                    <div class="wizard-step active" data-step="1">
+                        <span class="step-dot"></span>
+                        <span class="step-label">Basic</span>
+                    </div>
+                    <div class="wizard-step" data-step="2">
+                        <span class="step-dot"></span>
+                        <span class="step-label">Products</span>
+                    </div>
+                    <div class="wizard-step" data-step="3">
+                        <span class="step-dot"></span>
+                        <span class="step-label">Review & Publish</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Header -->
+            <div class="modal-header">
+                <h2>Add New Offer</h2>
+                <p>Create New Offer</p>
+            </div>
+
+            <!-- Wizard Content -->
+            <div class="wizard-content">
+                <!-- Step 1: Basic Information -->
+                <div class="wizard-step-content active" id="offerStep1">
+                    <!-- Basic Information Card -->
+                    <div class="form-card">
+                        <div class="form-section">
+                            <h3 class="form-section-title">Basic Information</h3>
+                            <p class="form-section-desc">Name and description for your offer</p>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Offer Name (English) <span class="required">*</span></label>
+                            <input type="text" class="form-input" placeholder="e.g., Happy Hour Special" id="offerNameEn">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Offer Name (Arabic)</label>
+                            <input type="text" class="form-input rtl-input" placeholder="مثال: عرض ساعة السعادة" id="offerNameAr" dir="rtl">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Offer Type <span class="required">*</span></label>
+                            <div class="offer-type-selector">
+                                <div class="offer-type-btn active" data-type="happy-hour">
+                                    <i class="fas fa-clock"></i>
+                                    <span>Happy Hour</span>
+                                </div>
+                                <div class="offer-type-btn" data-type="day-deal">
+                                    <i class="fas fa-calendar-day"></i>
+                                    <span>Day Deal</span>
+                                </div>
+                                <div class="offer-type-btn" data-type="time-range">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    <span>Time Range</span>
+                                </div>
+                                <div class="offer-type-btn" data-type="fixed-price">
+                                    <i class="fas fa-tag"></i>
+                                    <span>Fixed Price</span>
+                                </div>
+                            </div>
+                            <input type="hidden" id="offerType" value="happy-hour">
+                        </div>
+                    </div>
+
+                    <!-- Offer Type Details Section -->
+                    <div class="offer-type-details-section" id="offerTypeDetails">
+                        <div class="form-section">
+                            <h3 class="form-section-title" id="offerTypeTitle">Happy Hour Settings</h3>
+                            <p class="form-section-desc" id="offerTypeDesc">Set specific hours when customers get special discounts on selected items</p>
+                        </div>
+                        
+                        <div class="offer-type-info-card">
+                            <div class="info-card-icon">
+                                <i class="fas fa-clock" id="offerTypeIcon"></i>
+                            </div>
+                            <div class="info-card-content">
+                                <h4 id="offerTypeInfoTitle">How Happy Hour Works</h4>
+                                <p id="offerTypeInfoDesc">Customers will see discounted prices only during the time range you specify. Perfect for boosting sales during slow hours.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="daysFieldRow">
+                        <label class="form-label">Days of Week</label>
+                        <div class="days-selector">
+                            <button type="button" class="day-btn active" data-day="sun">Sun</button>
+                            <button type="button" class="day-btn active" data-day="mon">Mon</button>
+                            <button type="button" class="day-btn active" data-day="tue">Tue</button>
+                            <button type="button" class="day-btn active" data-day="wed">Wed</button>
+                            <button type="button" class="day-btn active" data-day="thu">Thu</button>
+                            <button type="button" class="day-btn active" data-day="fri">Fri</button>
+                            <button type="button" class="day-btn active" data-day="sat">Sat</button>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="timeFieldsRow">
+                        <div class="form-group">
+                            <label class="form-label">Start Time</label>
+                            <div class="time-input-wrapper clickable-picker">
+                                <input type="time" class="form-input time-input" id="offerStartTime">
+                                <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Time</label>
+                            <div class="time-input-wrapper clickable-picker">
+                                <input type="time" class="form-input time-input" id="offerEndTime">
+                                <i class="far fa-clock picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row" id="dateFieldsRow" style="display: none;">
+                        <div class="form-group">
+                            <label class="form-label">Start Date</label>
+                            <div class="date-input-wrapper clickable-picker">
+                                <input type="date" class="form-input date-input" id="offerStartDate">
+                                <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">End Date</label>
+                            <div class="date-input-wrapper clickable-picker">
+                                <input type="date" class="form-input date-input" id="offerEndDate">
+                                <i class="far fa-calendar-alt picker-icon" onclick="this.previousElementSibling.showPicker()"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fixed Price Info Card -->
+                    <div class="fixed-price-info-card" id="fixedPriceInfoCard" style="display: none;">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>Fixed Price offers are always active. Just select products below and set their offer prices.</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description (English)</label>
+                        <textarea class="form-textarea" placeholder="Describe the offer..." id="offerDescEn" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description (Arabic)</label>
+                        <textarea class="form-textarea rtl-input" placeholder="وصف العرض..." id="offerDescAr" rows="3" dir="rtl"></textarea>
+                    </div>
+
+                    <!-- Status Toggle -->
+                    <div class="form-group status-toggle-group">
+                        <div class="status-toggle-wrapper">
+                            <div class="status-toggle-info">
+                                <span class="status-toggle-label">Offer Status</span>
+                                <span class="status-toggle-desc">Enable or disable this offer</span>
+                            </div>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="offerActiveToggle" checked>
+                                <span class="toggle-slider"></span>
+                                <span class="toggle-status" id="toggleStatusText">Active</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Select Products -->
+                <div class="wizard-step-content" id="offerStep2">
+                    <div class="form-section">
+                        <h3 class="form-section-title">Select Products for this Offer</h3>
+                        <p class="form-section-desc">First select a category, then choose products to include.</p>
+                    </div>
+
+                    <!-- Category Selector -->
+                    <div class="form-group">
+                        <label class="form-label">Select Category</label>
+                        <select class="form-input form-select" id="offerCategorySelect">
+                            <option value="">Choose a category...</option>
+                            <option value="burgers">Burgers</option>
+                            <option value="pizza">Pizza</option>
+                            <option value="drinks">Drinks</option>
+                            <option value="desserts">Desserts</option>
+                            <option value="sides">Sides</option>
+                        </select>
+                    </div>
+
+                    <!-- Products List (shows after category selection) -->
+                    <div class="products-list-container" id="productsListContainer" style="display: none;">
+                        <label class="form-label">Select Products</label>
+                        <div class="products-checkbox-list" id="productsCheckboxList">
+                            <!-- Products will be loaded here dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Selected Products Summary -->
+                    <div class="selected-products-summary" id="selectedProductsSummary" style="display: none;">
+                        <label class="form-label">Selected Products</label>
+                        <div class="selected-products-list" id="selectedProductsList">
+                            <!-- Selected products will appear here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Review & Publish -->
+                <div class="wizard-step-content" id="offerStep3">
+                    <div class="form-section">
+                        <h3 class="form-section-title">Review & Publish</h3>
+                        <p class="form-section-desc">Final check before going live</p>
+                    </div>
+                    
+                    <!-- Preview Card -->
+                    <div class="preview-card">
+                        <!-- Summary Header -->
+                        <div class="summary-header">
+                            <div class="summary-title-group">
+                                <h3 class="summary-title">Offer Summary</h3>
+                                <p class="summary-subtitle">Final check before going live</p>
+                            </div>
+                            <span class="status-badge active">Active</span>
+                        </div>
+
+                        <!-- Basic Information Section -->
+                        <div class="preview-section">
+                            <h4 class="preview-section-title"><i class="fas fa-info-circle"></i> Basic Information</h4>
+                            <div class="preview-grid four-cols">
+                                <div class="preview-item">
+                                    <span class="preview-label">Name (English)</span>
+                                    <span class="preview-value" id="previewNameEn">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Name (Arabic)</span>
+                                    <span class="preview-value" id="previewNameAr">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Offer Type</span>
+                                    <span class="preview-value" id="previewOfferType">-</span>
+                                </div>
+                                <div class="preview-item">
+                                    <span class="preview-label">Description</span>
+                                    <span class="preview-value" id="previewDescEn">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Schedule Section -->
+                        <div class="preview-section" id="previewScheduleSection">
+                            <h4 class="preview-section-title"><i class="fas fa-calendar-alt"></i> Schedule</h4>
+                            <div class="preview-tags-container" id="previewDaysItem">
+                                <span class="preview-label">Days:</span>
+                                <div class="preview-tags" id="previewDaysTags">
+                                    <!-- Day tags will be inserted here -->
+                                </div>
+                            </div>
+                            <div class="preview-grid" id="previewTimeContainer">
+                                <div class="preview-item" id="previewTimeItem">
+                                    <span class="preview-label">Time</span>
+                                    <span class="preview-value" id="previewTime">-</span>
+                                </div>
+                                <div class="preview-item" id="previewDateItem" style="display: none;">
+                                    <span class="preview-label">Date Range</span>
+                                    <span class="preview-value" id="previewDateRange">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Selected Products Section -->
+                        <div class="preview-section">
+                            <h4 class="preview-section-title"><i class="fas fa-box"></i> Selected Products</h4>
+                            <div class="preview-products-list" id="previewProductsList">
+                                <p class="no-products-msg">No products selected</p>
+                            </div>
+                        </div>
+
+                        <!-- Summary Stats Footer -->
+                        <div class="summary-stats">
+                            <div class="stat-box">
+                                <span class="stat-number" id="statProductCount">0</span>
+                                <span class="stat-label">Products</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-number" id="statTotalSavings">$0</span>
+                                <span class="stat-label">Total Savings</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-number" id="statDaysCount">0</span>
+                                <span class="stat-label">Days</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Footer -->
+            <div class="wizard-footer">
+                <button class="wizard-btn secondary" id="offerPrevBtn" onclick="prevOfferStep()" style="display: none;">
+                    <i class="fas fa-arrow-left"></i>
+                    Previous
+                </button>
+                <div class="wizard-footer-spacer"></div>
+                <button class="wizard-btn primary" id="offerNextBtn" onclick="nextOfferStep()">
+                    Next
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <button class="wizard-btn success" id="offerPublishBtn" onclick="publishOffer()" style="display: none;">
+                    <i class="fas fa-check"></i>
+                    Publish Offer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Price Popup -->
+    <div class="popup-overlay" id="popupOverlay" onclick="closeProductPopup()"></div>
+    <div class="product-price-popup" id="productPricePopup">
+        <div class="popup-header">
+            <span class="popup-product-name" id="popupProductName">Product Name</span>
+            <span class="popup-base-price" id="popupBasePrice">Base Price: $0.00</span>
+        </div>
+        <div class="popup-inputs">
+            <div class="popup-input-group">
+                <label>Quantity</label>
+                <div class="input-with-unit">
+                    <input type="number" class="popup-input" id="popupQuantity" placeholder="1" min="1">
+                    <span class="input-unit">pcs</span>
+                </div>
+            </div>
+            <div class="popup-input-group">
+                <label>Offer Price</label>
+                <div class="input-with-unit">
+                    <span class="input-unit currency">$</span>
+                    <input type="number" class="popup-input" id="popupOfferPrice" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+        </div>
+        <div class="popup-actions">
+            <button class="popup-btn cancel" onclick="closeProductPopup()">Cancel</button>
+            <button class="popup-btn confirm" onclick="confirmProductSelection()">Confirm</button>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer">
+        <div class="toast success" id="successToast">
+            <div class="toast-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="toast-content">
+                <h4 class="toast-title">Success!</h4>
+                <p class="toast-message" id="toastMessage">Offer has been published successfully</p>
+            </div>
+            <button class="toast-close" onclick="hideToast()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
