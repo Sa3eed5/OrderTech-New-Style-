@@ -787,7 +787,7 @@
                     Next
                     <i class="fas fa-arrow-right"></i>
                 </button>
-                <button class="wizard-btn success" id="offerPublishBtn" onclick="openConfirmModal()" style="display: none;">
+                <button class="wizard-btn success" id="offerPublishBtn" onclick="confirmAndPublish()" style="display: none;">
                     <i class="fas fa-rocket"></i>
                     Publish Offer
                 </button>
@@ -824,67 +824,7 @@
         </div>
     </div>
 
-    <!-- Publish Confirmation Modal -->
-    <div class="confirm-modal-overlay" id="confirmModalOverlay" onclick="closeConfirmModal()" role="presentation"></div>
-    <div class="confirm-modal" id="confirmPublishModal" role="dialog" aria-labelledby="confirmModalTitle" aria-modal="true">
-        <div class="confirm-modal-header">
-            <div class="confirm-modal-icon">
-                <i class="fas fa-rocket" aria-hidden="true"></i>
-            </div>
-            <h3 class="confirm-modal-title" id="confirmModalTitle">Ready to Publish?</h3>
-            <p class="confirm-modal-subtitle">Please confirm the following before publishing your offer</p>
-        </div>
-        
-        <div class="confirm-checklist" role="list" aria-label="Publish confirmation checklist">
-            <label class="checklist-item" role="listitem">
-                <input type="checkbox" id="checkBasicInfo" onchange="updatePublishButton()">
-                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
-                <span class="checklist-text">I have verified all basic information is correct</span>
-            </label>
-            <label class="checklist-item" role="listitem">
-                <input type="checkbox" id="checkSchedule" onchange="updatePublishButton()">
-                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
-                <span class="checklist-text">I have confirmed the schedule and active days</span>
-            </label>
-            <label class="checklist-item" role="listitem">
-                <input type="checkbox" id="checkProducts" onchange="updatePublishButton()">
-                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
-                <span class="checklist-text">I have reviewed all selected products and prices</span>
-            </label>
-            <label class="checklist-item" role="listitem">
-                <input type="checkbox" id="checkReady" onchange="updatePublishButton()">
-                <span class="checkmark"><i class="fas fa-check" aria-hidden="true"></i></span>
-                <span class="checklist-text">I understand this offer will be visible to customers</span>
-            </label>
-        </div>
-
-        <div class="confirm-modal-summary">
-            <div class="confirm-summary-item">
-                <span class="confirm-summary-label">Offer Name</span>
-                <span class="confirm-summary-value" id="confirmOfferName">-</span>
-            </div>
-            <div class="confirm-summary-item">
-                <span class="confirm-summary-label">Status</span>
-                <span class="confirm-summary-value" id="confirmOfferStatus">-</span>
-            </div>
-            <div class="confirm-summary-item">
-                <span class="confirm-summary-label">Products</span>
-                <span class="confirm-summary-value" id="confirmProductCount">0 items</span>
-            </div>
-        </div>
-
-        <div class="confirm-modal-actions">
-            <button type="button" class="confirm-btn secondary" onclick="closeConfirmModal()">
-                <i class="fas fa-arrow-left" aria-hidden="true"></i>
-                Go Back
-            </button>
-            <button type="button" class="confirm-btn primary" id="confirmPublishBtn" onclick="confirmAndPublish()" disabled>
-                <i class="fas fa-rocket" aria-hidden="true"></i>
-                Publish Now
-            </button>
-        </div>
-    </div>
-
+    
     <!-- Toast Notification -->
     <div class="toast-container" id="toastContainer">
         <div class="toast success" id="successToast">
@@ -905,3 +845,4 @@
     <script src="script.js"></script>
 </body>
 </html>
+
